@@ -1,1 +1,1 @@
-# gradient-boosting-tree
+# Gradient Boosting Tree
