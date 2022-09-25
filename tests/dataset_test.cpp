@@ -1,4 +1,4 @@
-#include "../src/dataset.hpp"
+#include "../src/loss.hpp"
 #include <gtest/gtest.h>
 
 TEST(DatasetTest, Constructor) {
@@ -6,7 +6,7 @@ TEST(DatasetTest, Constructor) {
   std::vector<std::vector<double>> data_dense = { { 1.2, -10.0 } };
   std::vector<double> target = { 0.23, 1.0 };
 
-  Dataset dataset(data_categorical, data_dense, target);
+  ogbt::Dataset dataset(data_categorical, data_dense, target);
 
   // Test data
   auto data = dataset.get_data();
@@ -27,7 +27,7 @@ TEST(DatasetTest, PreprocessTest) {
   std::vector<std::vector<double>> data_dense_test = data_dense;
   std::vector<double> target_test = target;
 
-  Dataset dataset(data_categorical, data_dense, target);
+  ogbt::Dataset dataset(data_categorical, data_dense, target);
   EXPECT_EQ(data_dense, data_dense_test);
   EXPECT_EQ(data_categorical, data_categorical);
 
