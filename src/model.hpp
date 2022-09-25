@@ -4,10 +4,9 @@
 
 namespace ogbt {
 template<class loss> class Model {
-  // static_assert(std::is_base_of<Loss, loss>::value, "The loss must derive from Loss");
 
 private:
-  std::vector<Tree<loss>> ensemble_tree;
+  std::vector<Tree> ensemble_tree;
 
 public:
   Model() {}

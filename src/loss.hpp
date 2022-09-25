@@ -40,7 +40,7 @@ public:
     std::vector<double> ans;
     ans.resize(target.size());
     for (size_t i = 0; i < target.size(); i++) { ans[i] = predicted_target[i] - target[i]; }
-    return move(ans);
+    return ans;
   }
 };
 

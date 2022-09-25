@@ -42,11 +42,11 @@ public:
         counter[column[i]].second += 1;
       }
 
-      for (const int val : column) {
-        auto target_encoding = counter[val];
-        this->data.back().emplace_back(
-          (target_encoding.first + mean_target) / (target_encoding.second + smooth_target_encoding));
+      for (auto &el : counter) {
+        el.second.first = (el.second.first + mean_target) / (el.second.second + smooth_target_encoding);
       }
+
+      for (const int val : column) { this->data.back().emplace_back(counter[val].first); }
     }
   }
 
@@ -65,13 +65,12 @@ public:
       data_result.back().reserve(t_categorical[i].size());
 
       for (const int val : t_categorical[i]) {
-        auto target_encoding = target_encoding_counter[i][val];
-        data_result.back().emplace_back(
-          (target_encoding.first + mean_target) / (target_encoding.second + smooth_target_encoding));
+        const auto &target_encoding = target_encoding_counter[i][val];
+        data_result.back().emplace_back(target_encoding.first);
       }
     }
 
-    return move(data_result);
+    return data_result;
   }
 };
 }// namespace ogbt
