@@ -34,3 +34,10 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(hello_test)
 
+
+set(CMAKE_CXX_CLANG_TIDY 
+  clang-tidy;
+  -header-filter=.;
+  -checks=*;
+  -warnings-as-errors=*;
+)
