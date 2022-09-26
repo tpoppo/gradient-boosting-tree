@@ -5,7 +5,7 @@ project(gradient-boosting-tree)
 set(CMAKE_CXX_STANDARD 17)
 
 # Set compilers flags
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -std=c++17 --coverage -g -fno-exceptions -fno-inline")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wformat=2 -Wfloat-equal -Wlogical-op -Wshift-overflow=2 -std=c++17 --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
 
 
 include(FetchContent)
@@ -22,47 +22,17 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(
-  dataset_test
-  tests/dataset_test.cpp
+  tests
+  tests/tests.cpp
 )
 target_link_libraries(
-  dataset_test
+  tests
   GTest::gtest_main
 )
-
-add_executable(
-  loss_test
-  tests/loss_test.cpp
-)
-target_link_libraries(
-  loss_test
-  GTest::gtest_main
-)
-
-add_executable(
-  model_test
-  tests/model_test.cpp
-)
-target_link_libraries(
-  model_test
-  GTest::gtest_main
-)
-
-add_executable(
-  tree_test
-  tests/tree_test.cpp
-)
-target_link_libraries(
-  tree_test
-  GTest::gtest_main
-)
-
 
 include(GoogleTest)
-gtest_discover_tests(dataset_test)
-gtest_discover_tests(loss_test)
-gtest_discover_tests(tree_test)
-gtest_discover_tests(model_test)
+gtest_discover_tests(tests)
+
 
 
 set(CMAKE_CXX_CLANG_TIDY 
