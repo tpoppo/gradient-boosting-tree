@@ -2,9 +2,9 @@
 #include "dataset.hpp"
 #include "tree.hpp"
 #include <algorithm>
+#include <iostream>
 #include <random>
 #include <vector>
-#include <iostream>
 
 namespace ogbt {
 
@@ -12,43 +12,40 @@ struct ScoreTree {
   double score;
   Tree tree;
 
-  ScoreTree(double t_score, const Dataset &t_dataset, std::mt19937 &t_generator, unsigned tree_depth)
-    : score(t_score), tree{ t_dataset, t_generator, tree_depth} {}
-
-  ScoreTree(const Dataset &t_dataset, std::mt19937 &t_generator, unsigned tree_depth) : score(0.0), tree{ t_dataset, t_generator, tree_depth } {}
+  ScoreTree(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &t_generator, unsigned tree_depth)
+    : score(0.0), tree{ x, y, t_generator, tree_depth } {}
   bool operator<(const ScoreTree &r) { return score < r.score; }
 };
 
 template<typename TLoss>
-Tree genetic_algo(const Dataset &dataset,
+Tree genetic_algo(const DatasetTest &x,
+  const std::vector<double> &y,
   unsigned tree_depth = 5,
   unsigned iterations = 2,
   unsigned population = 100,
   unsigned selected = 5,
   unsigned new_mutations = 50,
-  unsigned num_mutations = 2,
-  float subsampling = 0.5) {
+  unsigned num_mutations = 2) {
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
-  int sub_size = dataset.size() * subsampling;
+
   std::vector<ScoreTree> pop_trees;
+
   for (size_t t = 0; t < iterations; t++) {
-    Dataset sub_dataset = dataset.subsample(sub_size, generator);
     pop_trees.reserve(population);
+
     int new_population = population - pop_trees.size();
-    std::cout << new_population << " => " << population << " - " << pop_trees.size() << std::endl;
     for (int j = 0; j < new_population; j++) {
-      pop_trees.emplace_back(sub_dataset, generator, tree_depth);
-      double score = TLoss::score(pop_trees.back().tree, sub_dataset);
+      pop_trees.emplace_back(x, y, generator, tree_depth);
+      double score = TLoss::score(pop_trees.back().tree.predict(x), y);
       pop_trees.back().score = score;
     }
     if (t + 1 < iterations) {// skip in the last iteration
       // select best elements
-      std::cout << pop_trees.size() << " | " << selected << " " << population << " " << new_population << std::endl; 
       std::nth_element(pop_trees.begin(), pop_trees.begin() + selected, pop_trees.end());
       pop_trees.erase(pop_trees.begin() + selected + 1, pop_trees.end());
     }
- 
+
     // generate new samples
     for (size_t i = 0; i < new_mutations; i++) {
       auto parent = pop_trees[generator() % selected];
@@ -57,15 +54,14 @@ Tree genetic_algo(const Dataset &dataset,
 
       for (size_t j = 0; j < num_mutations; j++) {
         int mut_depth = generator() % splitting_value.size();// random depth
-        features[mut_depth] = generator() % sub_dataset.num_features();// change the splitting feature
-        splitting_value[mut_depth] = sub_dataset.get_x()[features[mut_depth]][generator() % sub_dataset.size()];
+        features[mut_depth] = generator() % x.size();// change the splitting feature
+        splitting_value[mut_depth] = x[features[mut_depth]][generator() % y.size()];
       }
-      parent.score = TLoss::score(pop_trees.back().tree, sub_dataset);
+      parent.score = TLoss::score(pop_trees.back().tree.predict(x), y);
       pop_trees.push_back(parent);
     }
   }
   return std::max_element(pop_trees.begin(), pop_trees.end())->tree;
 }
-
 
 }// namespace ogbt

@@ -13,7 +13,7 @@ public:
 
   static double score(const std::vector<double> &y_pred, const Dataset &data) { return score(y_pred, data.get_y()); }
 
-  template<class loss> static double score(const Model<loss> &model, const Dataset &data) {
+  template<typename TLoss, typename TreeGenAlgo> static double score(const Model<TLoss> &model, const Dataset &data) {
     return score(model.predict(data.get_x()), data.get_y());
   }
 
@@ -27,7 +27,7 @@ public:
     return residual(y_pred, data.get_y());
   }
 
-  template<class loss> static std::vector<double> residual(const Model<loss> &model, Dataset data) {
+  template<typename TLoss, typename TreeGenAlgo> static std::vector<double> residual(const Model<TLoss> &model, Dataset data) {
     return residual(model.predict(data.get_x()), data);
   }
 

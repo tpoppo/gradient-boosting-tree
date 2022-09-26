@@ -1,31 +1,41 @@
 #pragma once
 #include "dataset.hpp"
+#include <iostream>
 #include <random>
 #include <type_traits>
-
 namespace ogbt {
 
 class Tree {
 private:
-  std::vector<int> decision_table;
+  std::vector<double> decision_table;
   std::vector<int> features;
   std::vector<double> splitting_value;
 
 public:
   Tree(const Dataset &data, std::mt19937 &generator, const unsigned depth = 5)
+    : Tree(data.get_x(), data.get_y(), generator, depth) {}
+
+  Tree(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &generator, const unsigned depth = 5)
     : features(depth), splitting_value(depth) {
+
     for (unsigned i = 0; i < depth; i++) {
-      const auto &x = data.get_x();
       features[i] = generator() % x.size();
       splitting_value[i] = x[features[i]][generator() % x[features[i]].size()] + 1e-5;
     }
-    build_decision_table(data);
+
+    build_decision_table(x, y);
   }
 
-  Tree(const Dataset &data, const std::vector<int> &t_features, const std::vector<double> &t_splitting_value) {
+  Tree(const Dataset &data, const std::vector<int> &t_features, const std::vector<double> &t_splitting_value)
+    : Tree(data.get_x(), data.get_y(), t_features, t_splitting_value) {}
+
+  Tree(const DatasetTest &x,
+    const std::vector<double> &y,
+    const std::vector<int> &t_features,
+    const std::vector<double> &t_splitting_value) {
     features = t_features;
     splitting_value = t_splitting_value;
-    build_decision_table(data);
+    build_decision_table(x, y);
   }
 
   std::vector<double> predict(const DatasetTest &data) const {
@@ -45,15 +55,15 @@ public:
     for (size_t i = 0; i < decision_table.size(); i++) { decision_table[i] *= factor; }
   }
 
-  void build_decision_table(const Dataset &data) {
+  void build_decision_table(const Dataset &data) { build_decision_table(data.get_x(), data.get_y()); }
+
+  void build_decision_table(const DatasetTest &x, const std::vector<double> &y) {
     std::vector<int> decision_table_cnt;
     decision_table.clear();
     decision_table.resize(1 << features.size());
     decision_table_cnt.resize(1 << features.size());
-    const auto &x = data.get_x();
-    const auto &y = data.get_y();
 
-    for (size_t i = 0; i < data.size(); i++) {
+    for (size_t i = 0; i < y.size(); i++) {
       unsigned index = 0;
       for (size_t d = 0; d < features.size(); d++) {
         index <<= 1;

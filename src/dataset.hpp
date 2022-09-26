@@ -15,8 +15,8 @@ private:
   std::vector<double> target;
 
   std::vector<std::unordered_map<int, std::pair<double, int>>> target_encoding_counter;
-  int smooth_target_encoding{ 0 };
-  double mean_target{ 0 };
+  int smooth_target_encoding;
+  double mean_target;
 
 public:
   Dataset(const std::vector<std::vector<double>> &t_dense, const std::vector<double> &t_target)
@@ -42,7 +42,7 @@ public:
       target_encoding_counter.emplace_back();
       std::unordered_map<int, std::pair<double, int>> &counter = target_encoding_counter.back();
 
-      counter.max_load_factor(0.15);
+      counter.max_load_factor(0.15f);
       for (size_t i = 0; i < column.size(); i++) {
         counter[column[i]].first += target[i];
         counter[column[i]].second += 1;
@@ -63,20 +63,7 @@ public:
   auto size() const { return this->target.size(); }
   auto num_features() const { return this->data.size(); }
 
-  Dataset subsample(int sample_size, std::mt19937 &generator) const {
-    std::vector<int> shuffled_selection(size());
-    for (size_t i = 0; i < size(); i++) { shuffled_selection[i] = i; }
-    std::shuffle(shuffled_selection.begin(), shuffled_selection.end(), generator);
-    std::vector<std::vector<double>> sub_data(num_features());
-    std::vector<double> sub_target;
-    sub_target.reserve(size());
-    for (int i = 0; i < sample_size; i++) {
-      sub_target.emplace_back(target[shuffled_selection[i]]);
-      for (size_t j = 0; j < num_features(); j++) { sub_data[j].emplace_back(data[j][shuffled_selection[i]]); }
-    }
-    return Dataset{sub_data, sub_target};
-  }
-
+  
   const auto process_test(const std::vector<std::vector<int>> &t_categorical,
     const std::vector<std::vector<double>> &t_dense) {
 

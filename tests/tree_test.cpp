@@ -7,7 +7,15 @@ TEST(Tree, Constructor) {
   std::vector<double> target = { 1.0, 0.0 };
   ogbt::Dataset dataset(data_categorical, data_dense, target);
   std::mt19937 gen;
-  ogbt::Tree tree(dataset, gen);
+  ogbt::Tree tree(dataset, gen, 6);
+
+  EXPECT_EQ(tree.get_splitting_value().size(), 6);
+  
+  EXPECT_EQ(tree.get_features().size(), 6);
+  for(size_t i=0; i<tree.get_features().size(); i++){
+    EXPECT_GE(tree.get_features()[i], 0);
+    EXPECT_LT(tree.get_features()[i], 3);
+  }
 }
 
 
