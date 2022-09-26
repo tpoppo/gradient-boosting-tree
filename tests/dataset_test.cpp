@@ -1,4 +1,4 @@
-#include "../src/loss.hpp"
+#include "../src/dataset.hpp"
 #include <gtest/gtest.h>
 
 TEST(DatasetTest, Constructor) {
@@ -9,13 +9,13 @@ TEST(DatasetTest, Constructor) {
   ogbt::Dataset dataset(data_categorical, data_dense, target);
 
   // Test data
-  auto data = dataset.get_data();
+  auto data = dataset.get_x();
 
   EXPECT_EQ(data.size(), 3);
   for (auto &row : data) { EXPECT_EQ(row.size(), 2); }
 
   // Test target
-  auto dataset_target = dataset.get_target();
+  auto dataset_target = dataset.get_y();
   EXPECT_EQ(dataset_target, target);
 }
 
@@ -31,7 +31,7 @@ TEST(DatasetTest, PreprocessTest) {
   EXPECT_EQ(data_dense, data_dense_test);
   EXPECT_EQ(data_categorical, data_categorical);
 
-  auto data = dataset.get_data();
+  auto data = dataset.get_x();
 
   auto dataset_test = dataset.process_test(data_categorical_test, data_dense_test);
   EXPECT_EQ(dataset_test, data);

@@ -3,7 +3,7 @@
 #include "tree.hpp"
 
 namespace ogbt {
-template<class loss> class Model {
+template<typename loss> class Model {
 
 private:
   std::vector<Tree> ensemble_tree;
@@ -13,9 +13,9 @@ public:
 
   void fit(Dataset data) {}
 
-  auto predict(Dataset t_data) const { return predict(t_data.get_data()); }
+  auto predict(Dataset t_data) const { return predict(t_data.get_x()); }
 
-  auto predict(DatasetTest t_data) const {
+  std::vector<double> predict(DatasetTest t_data) const {
     std::vector<double> data;
     for (const auto &tree : ensemble_tree) {
       std::vector<double> target_prediction = tree.predict(t_data);

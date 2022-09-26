@@ -5,7 +5,7 @@ project(gradient-boosting-tree)
 set(CMAKE_CXX_STANDARD 17)
 
 # Set compilers flags
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -std=c++17 --coverage -g -fno-exceptions -fno-inline")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -std=c++17 --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
 
 
 include(FetchContent)

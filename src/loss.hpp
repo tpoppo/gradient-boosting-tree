@@ -4,44 +4,57 @@
 #include <vector>
 
 namespace ogbt {
-class Loss {
+
+template<typename Score, typename Residual> class Loss {
 public:
-  Loss();
-
-  static double score(const std::vector<double> &predicted_target, const Dataset &data) { return 0.0; }
-
-  static double score(const Model<Loss> &model, const Dataset &data) {
-    return score(model.predict(data.get_data()), data);
+  static double score(const std::vector<double> &y_pred, const std::vector<double> &y_true) {
+    return Score::evaluate(y_pred, y_true);
   }
 
-  static std::vector<double> residual(const std::vector<double> &predicted_target, const Dataset &data) {
-    auto copy = predicted_target;
-    return copy;
+  static double score(const std::vector<double> &y_pred, const Dataset &data) { return score(y_pred, data.get_y()); }
+
+  template<class loss> static double score(const Model<loss> &model, const Dataset &data) {
+    return score(model.predict(data.get_x()), data.get_y());
   }
 
-  static std::vector<double> residual(const Model<Loss> &model, Dataset data) {
-    return residual(model.predict(data.get_data()), data);
+  static double score(const Tree &tree, const Dataset &data) { return score(tree.predict(data.get_x()), data); }
+
+  static std::vector<double> residual(const std::vector<double> &y_pred, const std::vector<double> &y_true) {
+    return Residual::evaluate(y_pred, y_true);
+  }
+
+  static std::vector<double> residual(const std::vector<double> &y_pred, const Dataset &data) {
+    return residual(y_pred, data.get_y());
+  }
+
+  template<class loss> static std::vector<double> residual(const Model<loss> &model, Dataset data) {
+    return residual(model.predict(data.get_x()), data);
+  }
+
+  static std::vector<double> residual(const Tree &tree, Dataset data) {
+    return residual(tree.predict(data.get_x()), data);
   }
 };
 
 
-class MSE : public Loss {
-public:
-  static double score(const std::vector<double> &predicted_target, const Dataset &data) {
-    const auto &target = data.get_target();
+struct ScoreMSE {
+  static double evaluate(const std::vector<double> &y_pred, const std::vector<double> &y_true) {
     double result = 0;
-    for (size_t i = 0; i < predicted_target.size(); i++)
-      result += (target[i] - predicted_target[i]) * (target[i] - predicted_target[i]);
-    return result / target.size();
+    for (size_t i = 0; i < y_pred.size(); i++) result += (y_true[i] - y_pred[i]) * (y_true[i] - y_pred[i]);
+    return result / y_true.size();
   }
+};
 
-  static std::vector<double> residual(const std::vector<double> &predicted_target, const Dataset &data) {
-    const auto &target = data.get_target();
+struct ResidualMSE {
+  static std::vector<double> evaluate(const std::vector<double> &y_pred, const std::vector<double> &y_true) {
     std::vector<double> ans;
-    ans.resize(target.size());
-    for (size_t i = 0; i < target.size(); i++) { ans[i] = predicted_target[i] - target[i]; }
+    ans.resize(y_true.size());
+    for (size_t i = 0; i < y_true.size(); i++) { ans[i] = y_pred[i] - y_true[i]; }
     return ans;
   }
 };
+
+
+using MSE = Loss<ScoreMSE, ResidualMSE>;
 
 }// namespace ogbt
