@@ -48,4 +48,5 @@ jobs:
         fail_ci_if_error: true
         functionalities: fix
         verbose: true
+        gcov_ignore: tests
 
