@@ -7,13 +7,18 @@ template<typename loss> class Model {
 
 private:
   std::vector<Tree> ensemble_tree;
+  unsigned num_trees = 100;
+  unsigned depth = 5;
 
 public:
-  Model() {}
+  Model(unsigned t_num_trees = 100, unsigned t_depth = 5) {
+    num_trees = t_num_trees;
+    depth = t_depth;
+  }
 
-  void fit(Dataset data) {}
+  void fit(const Dataset &data) {}
 
-  auto predict(Dataset t_data) const { return predict(t_data.get_x()); }
+  auto predict(const Dataset &t_data) const { return predict(t_data.get_x()); }
 
   std::vector<double> predict(DatasetTest t_data) const {
     std::vector<double> data;

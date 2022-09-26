@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <random>
 #include <vector>
+#include <iostream>
 
 namespace ogbt {
 
@@ -11,15 +12,16 @@ struct ScoreTree {
   double score;
   Tree tree;
 
-  ScoreTree(double t_score, const Dataset &t_dataset, std::mt19937 &t_generator)
-    : score(t_score), tree{ t_dataset, t_generator } {}
+  ScoreTree(double t_score, const Dataset &t_dataset, std::mt19937 &t_generator, unsigned tree_depth)
+    : score(t_score), tree{ t_dataset, t_generator, tree_depth} {}
 
-  ScoreTree(const Dataset &t_dataset, std::mt19937 &t_generator) : score(0.0), tree{ t_dataset, t_generator } {}
+  ScoreTree(const Dataset &t_dataset, std::mt19937 &t_generator, unsigned tree_depth) : score(0.0), tree{ t_dataset, t_generator, tree_depth } {}
   bool operator<(const ScoreTree &r) { return score < r.score; }
 };
 
 template<typename TLoss>
 Tree genetic_algo(const Dataset &dataset,
+  unsigned tree_depth = 5,
   unsigned iterations = 2,
   unsigned population = 100,
   unsigned selected = 5,
@@ -33,18 +35,20 @@ Tree genetic_algo(const Dataset &dataset,
   for (size_t t = 0; t < iterations; t++) {
     Dataset sub_dataset = dataset.subsample(sub_size, generator);
     pop_trees.reserve(population);
-    size_t new_population = population - pop_trees.size();
-    for (size_t j = 0; j < new_population; j++) {
-      pop_trees.emplace_back(sub_dataset, generator);
+    int new_population = population - pop_trees.size();
+    std::cout << new_population << " => " << population << " - " << pop_trees.size() << std::endl;
+    for (int j = 0; j < new_population; j++) {
+      pop_trees.emplace_back(sub_dataset, generator, tree_depth);
       double score = TLoss::score(pop_trees.back().tree, sub_dataset);
       pop_trees.back().score = score;
     }
     if (t + 1 < iterations) {// skip in the last iteration
       // select best elements
+      std::cout << pop_trees.size() << " | " << selected << " " << population << " " << new_population << std::endl; 
       std::nth_element(pop_trees.begin(), pop_trees.begin() + selected, pop_trees.end());
       pop_trees.erase(pop_trees.begin() + selected + 1, pop_trees.end());
     }
-
+ 
     // generate new samples
     for (size_t i = 0; i < new_mutations; i++) {
       auto parent = pop_trees[generator() % selected];

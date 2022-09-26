@@ -13,12 +13,13 @@ TEST(Model, genetic_algo) {
 
   ogbt::Dataset dataset(data_dense, target);
   unsigned iterations = 2;
-  unsigned population = 100;
-  unsigned selected = 10;
-  unsigned new_mutations = 50;
+  unsigned tree_depth = 4;
+  unsigned population = 70;
+  unsigned selected = 5;
+  unsigned new_mutations = 20;
   unsigned num_mutations = 2;
-  float subsampling = 0.5;
+  float subsampling = 0.6;
 
   ogbt::Tree tree =
-    ogbt::genetic_algo<ogbt::MSE>(dataset, iterations, population, selected, new_mutations, num_mutations, subsampling);
+    ogbt::genetic_algo<ogbt::MSE>(dataset, tree_depth, iterations, population, selected, new_mutations, num_mutations, subsampling);
 }
