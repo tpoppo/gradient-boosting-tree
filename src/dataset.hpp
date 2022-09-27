@@ -1,9 +1,9 @@
 #pragma once
+#include <algorithm>
 #include <numeric>
+#include <random>
 #include <unordered_map>
 #include <vector>
-#include <random>
-#include <algorithm>
 
 
 namespace ogbt {
@@ -19,13 +19,13 @@ private:
   double mean_target;
 
 public:
-  Dataset(const std::vector<std::vector<double>> &t_dense, const std::vector<double> &t_target)
+  Dataset(const std::vector<std::vector<double>> &t_dense, const std::vector<double> &t_target) noexcept
     : data{ t_dense }, target{ t_target } {}
 
   Dataset(const std::vector<std::vector<int>> &t_categorical,
     const std::vector<std::vector<double>> &t_dense,
     const std::vector<double> &t_target,
-    const int t_smooth_target_encoding = 100) {
+    const int t_smooth_target_encoding = 100) noexcept {
 
     data = t_dense;
     target = t_target;
@@ -56,16 +56,16 @@ public:
     }
   }
 
-  const auto &get_x() const { return this->data; }
+  const auto &get_x() const noexcept { return this->data; }
 
-  const auto &get_y() const { return this->target; }
+  const auto &get_y() const noexcept { return this->target; }
 
-  auto size() const { return this->target.size(); }
-  auto num_features() const { return this->data.size(); }
+  auto size() const noexcept { return this->target.size(); }
+  auto num_features() const noexcept { return this->data.size(); }
 
-  
+
   const auto process_test(const std::vector<std::vector<int>> &t_categorical,
-    const std::vector<std::vector<double>> &t_dense) {
+    const std::vector<std::vector<double>> &t_dense) noexcept {
 
     std::vector<std::vector<double>> data_result = t_dense;
 

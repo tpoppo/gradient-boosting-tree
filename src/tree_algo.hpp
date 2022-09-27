@@ -13,7 +13,7 @@ struct ScoreTree {
 
   ScoreTree(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &t_generator, unsigned tree_depth)
     : score(0.0), tree{ x, y, t_generator, tree_depth } {}
-  bool operator<(const ScoreTree &r) { return score < r.score; }
+  bool operator<(const ScoreTree &r) const { return score < r.score; }
 };
 
 template<typename TLoss>
@@ -24,7 +24,7 @@ Tree genetic_algo(const DatasetTest &x,
   unsigned population = 100,
   unsigned selected = 5,
   unsigned new_mutations = 50,
-  unsigned num_mutations = 2) {
+  unsigned num_mutations = 2) noexcept {
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
 

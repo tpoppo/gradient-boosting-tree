@@ -74,8 +74,13 @@ TEST(Model, GeneticAlgo) {
 
 
 TEST(Model, GaussianTest) {
-  const int n = 5000;
+  #ifdef NDEBUG
+  const int n = 50000;
   const int m = 3;
+  #else
+  const int n = 100;
+  const int m = 3;
+  #endif
 
   std::mt19937 gen{ 12345 };
 

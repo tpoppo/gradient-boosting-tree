@@ -4,7 +4,7 @@ echo "\n\n--------------------------------- STEP 2 -----------------------------
 cmake --build build &&
 echo "\n\n--------------------------------- STEP 3 ---------------------------------" &&
 cd build &&
-sudo perf record ./tests &&
+sudo perf record -F 99 -a -g ./tests &&
 sudo perf report > profiling-results.txt && 
 echo "Created build/profiling-results.txt"
 

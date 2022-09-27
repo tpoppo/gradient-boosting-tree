@@ -10,13 +10,16 @@ template<typename TLoss> class Model {
 private:
   std::vector<Tree> ensemble_trees;
 
-  TreeGenerator tree_generator;
-  unsigned num_trees;
-  unsigned depth;
-  double learning_rate;
+  const TreeGenerator tree_generator;
+  const uint16_t num_trees;
+  const uint8_t depth;
+  const double learning_rate;
 
 public:
-  Model(TreeGenerator t_tree_generator, unsigned t_num_trees = 100, unsigned t_depth = 5, double t_learning_rate = 0.1)
+  Model(TreeGenerator t_tree_generator,
+    const uint16_t t_num_trees = 100,
+    const uint8_t t_depth = 5,
+    const double t_learning_rate = 0.1) noexcept
     : tree_generator{ t_tree_generator }, num_trees{ t_num_trees }, depth{ t_depth }, learning_rate{ t_learning_rate } {
   }
 
@@ -26,8 +29,8 @@ public:
     std::vector<double> y_pred(data.get_y().size());
 
     for (unsigned i = 0; i < num_trees; i++) {
-      auto residual = TLoss::residual(y_pred,y);
-      
+      auto residual = TLoss::residual(y_pred, y);
+
       ensemble_trees.push_back(tree_generator(x, residual));
       ensemble_trees.back().scale(learning_rate);
 
@@ -36,9 +39,9 @@ public:
     }
   }
 
-  auto predict(const Dataset &t_data) const { return predict(t_data.get_x()); }
+  auto predict(const Dataset &t_data) const noexcept { return predict(t_data.get_x()); }
 
-  std::vector<double> predict(DatasetTest t_data) const {
+  std::vector<double> predict(DatasetTest t_data) const noexcept {
     std::vector<double> data(t_data[0].size());
     for (const auto &tree : ensemble_trees) {
       std::vector<double> target_prediction = tree.predict(t_data);

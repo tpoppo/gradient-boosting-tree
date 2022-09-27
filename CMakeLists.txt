@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wformat=2 -Wfloa
 
 if(RELEASE)
   message("Release Mode")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -march=native -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -march=native -Ofast -g -faggressive-loop-optimizations")
 else()
   message("Debugging Mode")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
