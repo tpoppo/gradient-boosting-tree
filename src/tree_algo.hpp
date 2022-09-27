@@ -2,7 +2,6 @@
 #include "dataset.hpp"
 #include "tree.hpp"
 #include <algorithm>
-#include <iostream>
 #include <random>
 #include <vector>
 

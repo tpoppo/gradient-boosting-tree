@@ -2,6 +2,7 @@
 #include "dataset.hpp"
 #include "model.hpp"
 #include <vector>
+#include <cassert>
 
 namespace ogbt {
 
@@ -39,8 +40,11 @@ public:
 
 struct ScoreMSE {
   static double evaluate(const std::vector<double> &y_pred, const std::vector<double> &y_true) {
+    assert(y_pred.size() == y_true.size());
     double result = 0;
-    for (size_t i = 0; i < y_pred.size(); i++) result += (y_true[i] - y_pred[i]) * (y_true[i] - y_pred[i]);
+    for (size_t i = 0; i < y_pred.size(); i++) {
+      result += (y_true[i] - y_pred[i]) * (y_true[i] - y_pred[i]);
+    }
     return result / y_true.size();
   }
 };
@@ -49,7 +53,7 @@ struct ResidualMSE {
   static std::vector<double> evaluate(const std::vector<double> &y_pred, const std::vector<double> &y_true) {
     std::vector<double> ans;
     ans.resize(y_true.size());
-    for (size_t i = 0; i < y_true.size(); i++) { ans[i] = y_pred[i] - y_true[i]; }
+    for (size_t i = 0; i < y_true.size(); i++) { ans[i] = y_true[i] - y_pred[i]; }
     return ans;
   }
 };

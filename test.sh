@@ -6,6 +6,6 @@ echo "\n\n--------------------------------- STEP 3 -----------------------------
 cmake --build build &&
 echo "\n\n--------------------------------- STEP 4 ---------------------------------" &&
 cd build &&
-ctest --output-on-failure
+ctest --output-on-failure --verbose
 
 

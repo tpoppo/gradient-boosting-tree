@@ -1,6 +1,5 @@
 #pragma once
 #include "dataset.hpp"
-#include <iostream>
 #include <random>
 #include <type_traits>
 namespace ogbt {
@@ -70,7 +69,7 @@ public:
         index |= x[features[d]][i] > splitting_value[d];
       }
       decision_table[index] += y[i];
-      decision_table_cnt[index] |= 1;
+      ++decision_table_cnt[index];
     }
 
     for (size_t i = 0; i < decision_table.size(); i++) {
