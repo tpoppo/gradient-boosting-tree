@@ -1,11 +1,24 @@
 cmake_minimum_required(VERSION 3.14)
 project(gradient-boosting-tree)
 
+option(RELEASE "Disable debugging options" OFF)
+
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 17)
 
+
 # Set compilers flags
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wformat=2 -Wfloat-equal -Wlogical-op -Wshift-overflow=2 -std=c++17 --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
+set(CMAKE_CXX_FLAGS "-std=c++17")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wformat=2 -Wfloat-equal -Wlogical-op -Wshift-overflow=2")
+
+if(RELEASE)
+  message("Release Mode")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -march=native -g")
+else()
+  message("Debugging Mode")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
+endif()
 
 
 include(FetchContent)
