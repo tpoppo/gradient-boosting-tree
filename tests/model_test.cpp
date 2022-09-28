@@ -75,10 +75,10 @@ TEST(Model, GeneticAlgo) {
 
 TEST(Model, AlgoGenGaussianTest) {
 #ifdef NDEBUG
-  const int n = 1000000;
+  const int n = 1000;
   const int m = 10;
 #else
-  const int n = 5000;
+  const int n = 1000;
   const int m = 10;
 #endif
 
@@ -111,10 +111,10 @@ TEST(Model, AlgoGenGaussianTest) {
 
 TEST(Model, MSEGreedyGaussianTest) {
 #ifdef NDEBUG
-  const int n = 1000000;
+  const int n = 1000;
   const int m = 10;
 #else
-  const int n = 5000;
+  const int n = 1000;
   const int m = 10;
 #endif
 
