@@ -73,14 +73,14 @@ TEST(Model, GeneticAlgo) {
 }
 
 
-TEST(Model, GaussianTest) {
-  #ifdef NDEBUG
-  const int n = 50000;
-  const int m = 3;
-  #else
-  const int n = 100;
-  const int m = 3;
-  #endif
+TEST(Model, AlgoGenGaussianTest) {
+#ifdef NDEBUG
+  const int n = 1000000;
+  const int m = 10;
+#else
+  const int n = 5000;
+  const int m = 10;
+#endif
 
   std::mt19937 gen{ 12345 };
 
@@ -89,14 +89,15 @@ TEST(Model, GaussianTest) {
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
 
   constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
-    const unsigned iterations = 2;
-    const unsigned tree_depth = 8;
+    const unsigned iterations = 3;
+    const unsigned tree_depth = 6;
     const unsigned population = 100;
     const unsigned selected = 10;
     const unsigned new_mutations = 50;
     const unsigned num_mutations = 2;
+    const double subsample = 0.01;
     return ogbt::genetic_algo<ogbt::MSE>(
-      x, y, tree_depth, iterations, population, selected, new_mutations, num_mutations);
+      x, y, tree_depth, iterations, population, selected, new_mutations, num_mutations, subsample);
   };
 
   ogbt::Model<ogbt::MSE> model(genetic_algo, 100);
@@ -105,4 +106,33 @@ TEST(Model, GaussianTest) {
 
   auto score = ogbt::MSE::score(y_pred, dataset_validation.get_y());
   EXPECT_LE(score, 0.1);
+}
+
+
+TEST(Model, MSEGreedyGaussianTest) {
+#ifdef NDEBUG
+  const int n = 1000000;
+  const int m = 10;
+#else
+  const int n = 5000;
+  const int m = 10;
+#endif
+
+  std::mt19937 gen{ 12345 };
+
+
+  ogbt::Dataset dataset = ogbt::get_dummy_data(n, m, gen);
+  ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
+
+  constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    const unsigned tree_depth = 10;
+    return ogbt::greedy_mse_splitting(x, y, tree_depth);
+  };
+
+  ogbt::Model<ogbt::MSE> model(tree_generator, 100);
+  model.fit(dataset);
+  auto y_pred = model.predict(dataset_validation.get_x());
+
+  auto score = ogbt::MSE::score(y_pred, dataset_validation.get_y());
+  EXPECT_LE(score, 0.25);
 }

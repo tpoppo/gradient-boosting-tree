@@ -24,4 +24,17 @@ Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) {
 }
 
 
+std::pair<DatasetTest, std::vector<double>> get_subsample(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &gen, unsigned n) {
+  DatasetTest x_ans(x.size(), std::vector<double>(n));
+  std::vector<double> y_ans(n);
+
+  for(unsigned i=0; i<n; i++){
+    unsigned index = gen() % y.size();
+    y_ans[i] = y[index];
+    for(size_t j=0; j<x.size(); j++) x_ans[j][i] = x[j][index];
+  }
+  return {x_ans, y_ans};
+}
+
+
 }// namespace ogbt

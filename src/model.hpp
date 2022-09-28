@@ -2,6 +2,7 @@
 #include "dataset.hpp"
 #include "tree.hpp"
 #include <functional>
+#include <iostream>
 
 namespace ogbt {
 using TreeGenerator = std::function<Tree(const DatasetTest &, const std::vector<double> &)>;
@@ -30,6 +31,11 @@ public:
 
     for (unsigned i = 0; i < num_trees; i++) {
       auto residual = TLoss::residual(y_pred, y);
+
+      #ifndef NDEBUG
+      auto score = TLoss::score(y_pred, y);
+      std::cout << "score(" << i << "): " << score << std::endl;
+      #endif
 
       ensemble_trees.push_back(tree_generator(x, residual));
       ensemble_trees.back().scale(learning_rate);
