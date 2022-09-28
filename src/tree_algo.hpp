@@ -83,11 +83,10 @@ Tree genetic_algo(const DatasetTest &x,
 Tree greedy_mse_splitting(const DatasetTest &x_full,
   const std::vector<double> &y_full,
   const uint8_t tree_depth = 5,
-  const double lambda_reg = 10.0,
   const double subsample = 0.5) noexcept {
 
   assert(x_full.size() >= tree_depth);
-  
+
   std::vector<ScoreFeature> feature_score;
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
@@ -127,14 +126,13 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
       if (y.size() - i - 1 > 0) {
         score += r_squared_sum / (y.size() - i - 1) - r_sum * r_sum / (y.size() - i - 1) / (y.size() - i - 1);
       }
-      score += lambda_reg * (y.size()/2-i)*(y.size()/2-i)/y.size()/y.size();
 
       if (score < best_score) {
         best_score = score;
         if (i + 1 < x_order.size()) {
-          best_value = x_order[i] + 0.5 * (x_order[i + 1] - x_order[i]);
+          best_value = x[feat][x_order[i]] + 0.5 * (x[feat][x_order[i + 1]] - x[feat][x_order[i]]);
         } else {
-          best_value = x_order[i] + 1e-5;
+          best_value = x[feat][x_order[i]] + 1e-5;
         }
       }
     }
@@ -147,6 +145,130 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
   std::vector<double> splitting_value(tree_depth);
   for (size_t i = 0; i < features.size(); i++) features[i] = feature_score[i].feature;
   for (size_t i = 0; i < splitting_value.size(); i++) splitting_value[i] = feature_score[i].splitting_value;
+  return Tree{ x, y, features, splitting_value };
+}
+
+
+Tree mse_splitting_bdt(const DatasetTest &x,
+  const std::vector<double> &y,
+  const uint8_t tree_depth = 5,
+  const unsigned steps = 10) noexcept {
+  /*
+  Based on BDT: Gradient Boosted Decision Tables for High Accuracy and Scoring Efficiency
+  https://yinlou.github.io/papers/lou-kdd17.pdf
+
+  Faster implementation
+  */
+  assert(steps >= tree_depth);
+
+  std::vector<int> L(y.size());
+  std::vector<int> features(tree_depth);
+  std::vector<double> splitting_value(tree_depth, -1e100);
+
+  std::vector<int> counter(1 << tree_depth);
+  std::vector<double> sum(1 << tree_depth);
+  double current_score;
+
+  for (size_t i = 0; i < y.size(); i++) sum[0] += y[i];
+  counter[0] = y.size();
+  current_score = sum[0] * sum[0] / counter[0];
+
+  for (unsigned t = 0; t < steps; t++) {
+
+    const int k = t % tree_depth;
+
+    double best_score = -1e100;
+    double best_cut = -1e100;
+    int best_feat = 0;
+
+    std::vector<int> x_order(y.size());
+    for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
+
+    for (size_t feat = 0; feat < x.size(); feat++) {
+      std::sort(x_order.begin(), x_order.end(), [&x, &feat](int l, int r) { return x[feat][l] < x[feat][r]; });
+
+      // remove previous cut
+      for (size_t i = 0; i < y.size(); i++) {
+        if (L[i] & (1 << k)) {
+          current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          counter[L[i]]--;
+          assert(counter[L[i]] >= 0);
+          sum[L[i]] -= y[i];
+          if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+
+          L[i] -= 1 << k;
+
+          if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          counter[L[i]]++;
+          sum[L[i]] += y[i];
+          current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+        }
+      }
+
+      // iterate and update
+      for (size_t i = 0; i < x_order.size(); i++) {
+        current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+        counter[L[x_order[i]]]--;
+        sum[L[x_order[i]]] -= y[x_order[i]];
+        if (counter[L[x_order[i]]]) current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+
+        L[x_order[i]] |= (1 << k);
+
+        if (counter[L[x_order[i]]]) current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+        counter[L[x_order[i]]]++;
+        sum[L[x_order[i]]] += y[x_order[i]];
+        current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+
+        if (current_score > best_score) {
+          best_score = current_score;
+          best_feat = feat;
+          if (i + 1 < x_order.size()) {
+            best_cut = x[feat][x_order[i]] + 0.5 * (x[feat][x_order[i + 1]] - x[feat][x_order[i]]);
+          } else {
+            best_cut = x[feat][x_order[i]] + 1e-5;
+          }
+        }
+      }
+    }
+
+    for (size_t i = 0; i < y.size(); i++) {
+      if (x[best_feat][i] < best_cut) {
+        if (L[i] & (1 << k)) {
+          current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          counter[L[i]]--;
+          assert(counter[L[i]] >= 0);
+          sum[L[i]] -= y[i];
+          if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+
+          L[i] -= 1 << k;
+
+          if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          counter[L[i]]++;
+          sum[L[i]] += y[i];
+          current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+        }
+      } else {
+        if (!(L[i] & (1 << k))) {
+          current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          counter[L[i]]--;
+          assert(counter[L[i]] >= 0);
+          sum[L[i]] -= y[i];
+          if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+
+          L[i] |= 1 << k;
+
+          if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          counter[L[i]]++;
+          sum[L[i]] += y[i];
+          current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+        }
+      }
+    }
+
+    features[k] = best_feat;
+    splitting_value[k] = best_cut;
+  }
+
   return Tree{ x, y, features, splitting_value };
 }
 

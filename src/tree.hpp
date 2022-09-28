@@ -1,7 +1,9 @@
 #pragma once
 #include "dataset.hpp"
+#include <cassert>
 #include <random>
 #include <type_traits>
+
 namespace ogbt {
 
 class Tree {
@@ -26,12 +28,15 @@ public:
   }
 
   Tree(const Dataset &data, const std::vector<int> &t_features, const std::vector<double> &t_splitting_value) noexcept
-    : Tree(data.get_x(), data.get_y(), t_features, t_splitting_value) {}
+    : Tree(data.get_x(), data.get_y(), t_features, t_splitting_value) {
+    assert(t_features.size() == t_splitting_value.size());
+  }
 
   Tree(const DatasetTest &x,
     const std::vector<double> &y,
     const std::vector<int> &t_features,
     const std::vector<double> &t_splitting_value) noexcept {
+    assert(t_features.size() == t_splitting_value.size());
     features = t_features;
     splitting_value = t_splitting_value;
     build_decision_table(x, y);
