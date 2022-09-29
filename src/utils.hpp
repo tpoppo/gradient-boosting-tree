@@ -2,7 +2,7 @@
 #include "dataset.hpp"
 
 namespace ogbt {
-Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) {
+Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) noexcept {
 
   std::vector<std::vector<double>> data_dense;
   std::vector<double> target(n);
@@ -24,16 +24,50 @@ Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) {
 }
 
 
-std::pair<DatasetTest, std::vector<double>> get_subsample(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &gen, unsigned n) {
+std::pair<DatasetTest, std::vector<double>>
+  get_subsample(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &gen, const unsigned n) noexcept {
   DatasetTest x_ans(x.size(), std::vector<double>(n));
   std::vector<double> y_ans(n);
 
-  for(unsigned i=0; i<n; i++){
+  for (unsigned i = 0; i < n; i++) {
     unsigned index = gen() % y.size();
     y_ans[i] = y[index];
-    for(size_t j=0; j<x.size(); j++) x_ans[j][i] = x[j][index];
+    for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][index];
   }
-  return {x_ans, y_ans};
+  return { x_ans, y_ans };
+}
+
+std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
+  const std::vector<double> &y,
+  std::mt19937 &gen,
+  const unsigned a_n,
+  const unsigned b_n) noexcept {
+  /*
+  Based on "Gradient-based One-Side Sampling" from "LightGBM: A Highly Efficient Gradient Boosting Decision Tree"
+  https://papers.nips.cc/paper/2017/file/6449f44a102fde848669bdd9eb6b76fa-Paper.pdf
+
+  Faster implementation
+  */
+  assert(a_n <= y.size());
+  DatasetTest x_ans(x.size(), std::vector<double>(a_n + b_n));
+  std::vector<double> y_ans(a_n + b_n);
+
+  std::vector<int> y_order(y.size());
+  for (size_t i = 0; i < y.size(); i++) y_order[i] = i;
+  sort(y_order.begin(), y_order.end(), [&](const int a, const int b) { return abs(y[a]) > abs(y[b]); });
+
+  for (unsigned i = 0; i < a_n; i++) {
+    y_ans[i] = y[y_order[i]];
+    for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][y_order[i]];
+  }
+
+  for (unsigned i = a_n; i < a_n + b_n; i++) {
+    unsigned index = gen() % y.size();
+    y_ans[i] = y[index];
+    for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][index];
+  }
+
+  return { x_ans, y_ans };
 }
 
 

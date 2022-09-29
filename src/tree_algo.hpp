@@ -38,17 +38,20 @@ Tree genetic_algo(const DatasetTest &x,
   const unsigned selected = 5,
   const unsigned new_mutations = 50,
   const unsigned num_mutations = 2,
-  const double subsample = 0.5) noexcept {
+  const double subsample_a = 0.1,
+  const double subsample_b = 0.1) noexcept {
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
 
   std::vector<ScoreTree> pop_trees;
 
-  unsigned sample_size = std::max(100.0, y.size() * subsample);
+  unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y.size() * subsample_a)), y.size());
+  unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y.size() * subsample_b));
+
   for (size_t t = 0; t < iterations; t++) {
     pop_trees.reserve(population);
 
-    auto [x_curr, y_curr] = get_subsample(x, y, generator, sample_size);
+    auto [x_curr, y_curr] = get_goss(x, y, generator, sample_size_a, sample_size_b);
     int new_population = population - pop_trees.size();
     for (int j = 0; j < new_population; j++) {
       pop_trees.emplace_back(x_curr, y_curr, generator, tree_depth);
@@ -83,15 +86,18 @@ Tree genetic_algo(const DatasetTest &x,
 Tree greedy_mse_splitting(const DatasetTest &x_full,
   const std::vector<double> &y_full,
   const uint8_t tree_depth = 5,
-  const double subsample = 0.5) noexcept {
+  const double subsample_a = 0.1,
+  const double subsample_b = 0.1) noexcept {
 
   assert(x_full.size() >= tree_depth);
 
   std::vector<ScoreFeature> feature_score;
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
-  auto sample_size = subsample * y_full.size();
-  auto [x, y] = get_subsample(x_full, y_full, generator, sample_size);
+  unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y_full.size() * subsample_a)), y_full.size());
+  unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y_full.size() * subsample_b));
+
+  auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   for (size_t feat = 0; feat < x.size(); feat++) {
     std::vector<int> x_order(y.size());
@@ -149,10 +155,12 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
 }
 
 
-Tree mse_splitting_bdt(const DatasetTest &x,
-  const std::vector<double> &y,
+Tree mse_splitting_bdt(const DatasetTest &x_full,
+  const std::vector<double> &y_full,
   const uint8_t tree_depth = 5,
-  const unsigned steps = 10) noexcept {
+  const unsigned steps = 10,
+  const double subsample_a = 0.1,
+  const double subsample_b = 0.1) noexcept {
   /*
   Based on BDT: Gradient Boosted Decision Tables for High Accuracy and Scoring Efficiency
   https://yinlou.github.io/papers/lou-kdd17.pdf
@@ -160,6 +168,13 @@ Tree mse_splitting_bdt(const DatasetTest &x,
   Faster implementation
   */
   assert(steps >= tree_depth);
+
+  std::random_device random_dev;
+  std::mt19937 generator(random_dev());
+  unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y_full.size() * subsample_a)), y_full.size());
+  unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y_full.size() * subsample_b));
+
+  auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   std::vector<int> L(y.size());
   std::vector<int> features(tree_depth);
@@ -174,7 +189,6 @@ Tree mse_splitting_bdt(const DatasetTest &x,
   current_score = sum[0] * sum[0] / counter[0];
 
   for (unsigned t = 0; t < steps; t++) {
-
     const int k = t % tree_depth;
 
     double best_score = -1e100;

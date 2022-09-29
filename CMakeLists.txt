@@ -10,15 +10,21 @@ set(CMAKE_CXX_STANDARD 17)
 # Set compilers flags
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wformat=2 -Wfloat-equal -Wlogical-op -Wshift-overflow=2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wfloat-equal -Wformat=2")
 
 if(RELEASE)
   message("Release Mode")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -march=native -Ofast -g -faggressive-loop-optimizations")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -Ofast -g -faggressive-loop-optimizations -march=native")
 else()
   message("Debugging Mode")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
 endif()
+
+set(CMAKE_CXX_CLANG_TIDY
+  clang-tidy-6.0;
+  -format-style='file';
+  -header-filter=${CMAKE_CURRENT_SOURCE_DIR};
+)
 
 
 include(FetchContent)

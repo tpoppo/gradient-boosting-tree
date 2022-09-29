@@ -63,7 +63,6 @@ public:
   auto size() const noexcept { return this->target.size(); }
   auto num_features() const noexcept { return this->data.size(); }
 
-
   const auto process_test(const std::vector<std::vector<int>> &t_categorical,
     const std::vector<std::vector<double>> &t_dense) noexcept {
 

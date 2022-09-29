@@ -4,11 +4,8 @@
 #include "../src/tree.hpp"
 #include "../src/tree_algo.hpp"
 #include "../src/utils.hpp"
-
-#include <vector>
-
 #include <gtest/gtest.h>
-
+#include <vector>
 
 TEST(Model, Constructor) {
   constexpr auto gen_random = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
@@ -17,7 +14,6 @@ TEST(Model, Constructor) {
   };
 
   ogbt::Model<ogbt::MSE> model(gen_random);
-
   constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
     return ogbt::genetic_algo<ogbt::MSE>(x, y);
   };
@@ -63,9 +59,9 @@ TEST(Model, GeneticAlgo) {
   ogbt::Dataset dataset(data_dense, target);
   unsigned iterations = 2;
   unsigned tree_depth = 6;
-  unsigned population = 70;
-  unsigned selected = 5;
-  unsigned new_mutations = 20;
+  unsigned population = 5;
+  unsigned selected = 1;
+  unsigned new_mutations = 2;
   unsigned num_mutations = 2;
 
   ogbt::Tree tree = ogbt::genetic_algo<ogbt::MSE>(
@@ -75,15 +71,14 @@ TEST(Model, GeneticAlgo) {
 
 TEST(Model, AlgoGenGaussianTest) {
 #ifdef NDEBUG
-  const int n = 1000;
-  const int m = 7;
+  const int n = 500000;
+  const int m = 10;
 #else
   const int n = 1000;
   const int m = 7;
 #endif
 
   std::mt19937 gen{ 12345 };
-
 
   ogbt::Dataset dataset = ogbt::get_dummy_data(n, m, gen);
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
@@ -95,9 +90,8 @@ TEST(Model, AlgoGenGaussianTest) {
     const unsigned selected = 10;
     const unsigned new_mutations = 50;
     const unsigned num_mutations = 2;
-    const double subsample = 0.01;
     return ogbt::genetic_algo<ogbt::MSE>(
-      x, y, tree_depth, iterations, population, selected, new_mutations, num_mutations, subsample);
+      x, y, tree_depth, iterations, population, selected, new_mutations, num_mutations);
   };
 
   ogbt::Model<ogbt::MSE> model(genetic_algo, 100);
@@ -111,8 +105,8 @@ TEST(Model, AlgoGenGaussianTest) {
 
 TEST(Model, MSEGreedyGaussianTest) {
 #ifdef NDEBUG
-  const int n = 1000;
-  const int m = 7;
+  const int n = 500000;
+  const int m = 10;
 #else
   const int n = 1000;
   const int m = 7;
@@ -140,8 +134,8 @@ TEST(Model, MSEGreedyGaussianTest) {
 
 TEST(Model, MSEBDTGaussianTest) {
 #ifdef NDEBUG
-  const int n = 1000;
-  const int m = 7;
+  const int n = 500000;
+  const int m = 10;
 #else
   const int n = 1000;
   const int m = 7;
