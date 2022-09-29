@@ -21,7 +21,7 @@ else()
 endif()
 
 set(CMAKE_CXX_CLANG_TIDY
-  clang-tidy-6.0;
+  clang-tidy;
   -format-style='file';
   -header-filter=${CMAKE_CURRENT_SOURCE_DIR};
 )
