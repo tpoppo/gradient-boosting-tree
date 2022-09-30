@@ -89,7 +89,7 @@ std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
   DatasetTest x_ans(x.size(), std::vector<double>(a_n + b_n));
   std::vector<double> y_ans(a_n + b_n);
 
-  std::vector<int> y_order(y.size());
+  std::vector<unsigned> y_order(y.size());
   for (size_t i = 0; i < y.size(); i++) y_order[i] = i;
   sort(y_order.begin(), y_order.end(), [&](const int a, const int b) { return abs(y[a]) > abs(y[b]); });
 

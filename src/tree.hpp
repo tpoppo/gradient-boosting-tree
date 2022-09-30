@@ -10,7 +10,7 @@ namespace ogbt {
 class Tree {
 private:
   std::vector<double> decision_table;
-  std::vector<int> features;
+  std::vector<unsigned> features;
   std::vector<double> splitting_value;
 
 public:
@@ -28,14 +28,14 @@ public:
     build_decision_table(x, y);
   }
 
-  Tree(const Dataset &data, const std::vector<int> &t_features, const std::vector<double> &t_splitting_value) noexcept
+  Tree(const Dataset &data, const std::vector<unsigned> &t_features, const std::vector<double> &t_splitting_value) noexcept
     : Tree(data.get_x(), data.get_y(), t_features, t_splitting_value) {
     assert(t_features.size() == t_splitting_value.size());
   }
 
   Tree(const DatasetTest &x,
     const std::vector<double> &y,
-    const std::vector<int> &t_features,
+    const std::vector<unsigned> &t_features,
     const std::vector<double> &t_splitting_value) noexcept {
     assert(t_features.size() == t_splitting_value.size());
     features = t_features;
@@ -49,7 +49,7 @@ public:
 
       unsigned index = 0;
 
-      for (size_t d = 0; d < features.size(); d++) { index |= ((data[features[d]][i] > splitting_value[d]) << d); }
+      for (size_t d = 0; d < features.size(); d++) { index |= (static_cast<uint32_t>(data[features[d]][i] > splitting_value[d]) << d); }
 
       ans[i] = decision_table[index];
     }
@@ -63,10 +63,10 @@ public:
   void build_decision_table(const Dataset &data) noexcept { build_decision_table(data.get_x(), data.get_y()); }
 
   void build_decision_table(const DatasetTest &x, const std::vector<double> &y) noexcept {
-    std::vector<int> decision_table_cnt;
+    std::vector<unsigned> decision_table_cnt;
     decision_table.clear();
-    decision_table.resize(1 << features.size());
-    decision_table_cnt.resize(1 << features.size());
+    decision_table.resize(1u << features.size());
+    decision_table_cnt.resize(1u << features.size());
 
     for (size_t i = 0; i < y.size(); i++) {
       unsigned index = 0;

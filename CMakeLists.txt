@@ -20,11 +20,11 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -g -fno-exceptions -fno-inline -fsanitize=address")
 endif()
 
-set(CMAKE_CXX_CLANG_TIDY
-  clang-tidy;
-  -format-style='file';
-  -header-filter=${CMAKE_CURRENT_SOURCE_DIR};
-)
+# set(CMAKE_CXX_CLANG_TIDY
+#   clang-tidy;
+#   -format-style='file';
+#   -header-filter=${CMAKE_CURRENT_SOURCE_DIR};
+# )
 
 
 include(FetchContent)

@@ -20,9 +20,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install clang-tiny
-      # Build your program with the given configuration
-      run: sudo apt-get install -y clang-tidy
+    # - name: Install clang-tiny
+    #   run: sudo apt-get install -y clang-tidy
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.

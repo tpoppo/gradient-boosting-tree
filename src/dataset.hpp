@@ -42,7 +42,7 @@ public:
       target_encoding_counter.emplace_back();
       std::unordered_map<int, std::pair<double, int>> &counter = target_encoding_counter.back();
 
-      counter.max_load_factor(0.15f);
+      counter.max_load_factor(0.15F);
       for (size_t i = 0; i < column.size(); i++) {
         counter[column[i]].first += target[i];
         counter[column[i]].second += 1;
@@ -63,8 +63,8 @@ public:
   auto size() const noexcept { return this->target.size(); }
   auto num_features() const noexcept { return this->data.size(); }
 
-  const auto process_test(const std::vector<std::vector<int>> &t_categorical,
-    const std::vector<std::vector<double>> &t_dense) noexcept {
+  auto process_test(const std::vector<std::vector<int>> &t_categorical,
+    const std::vector<std::vector<double>> &t_dense) const noexcept {
 
     std::vector<std::vector<double>> data_result = t_dense;
 
@@ -74,7 +74,7 @@ public:
       data_result.back().reserve(t_categorical[i].size());
 
       for (const int val : t_categorical[i]) {
-        const auto &target_encoding = target_encoding_counter[i][val];
+        const auto &target_encoding = target_encoding_counter[i].at(val);
         data_result.back().emplace_back(target_encoding.first);
       }
     }

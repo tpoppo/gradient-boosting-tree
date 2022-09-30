@@ -34,7 +34,7 @@ Tree genetic_algo(const DatasetTest &x,
   const std::vector<double> &y,
   const uint8_t tree_depth = 5,
   const unsigned iterations = 2,
-  const unsigned population = 100,
+  const unsigned population = 300,
   const unsigned selected = 5,
   const unsigned new_mutations = 50,
   const unsigned num_mutations = 2,
@@ -100,7 +100,7 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
   auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   for (size_t feat = 0; feat < x.size(); feat++) {
-    std::vector<int> x_order(y.size());
+    std::vector<unsigned> x_order(y.size());
     for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
 
     std::sort(x_order.begin(), x_order.end(), [&x, &feat](int l, int r) { return x[feat][l] < x[feat][r]; });
@@ -147,7 +147,7 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
   }
 
   std::nth_element(feature_score.begin(), feature_score.begin() + tree_depth, feature_score.end());
-  std::vector<int> features(tree_depth);
+  std::vector<unsigned> features(tree_depth);
   std::vector<double> splitting_value(tree_depth);
   for (size_t i = 0; i < features.size(); i++) features[i] = feature_score[i].feature;
   for (size_t i = 0; i < splitting_value.size(); i++) splitting_value[i] = feature_score[i].splitting_value;
@@ -176,12 +176,12 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
 
   auto [x, y] = make_pair(x_full, y_full); // get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
-  std::vector<int> L(y.size());
-  std::vector<int> features(tree_depth);
+  std::vector<unsigned> L(y.size());
+  std::vector<unsigned> features(tree_depth);
   std::vector<double> splitting_value(tree_depth, -1e100);
 
-  std::vector<int> counter(1 << tree_depth);
-  std::vector<double> sum(1 << tree_depth);
+  std::vector<unsigned> counter(1u << tree_depth);
+  std::vector<double> sum(1u << tree_depth);
   double current_score;
 
   for (size_t i = 0; i < y.size(); i++) sum[0] += y[i];
@@ -195,7 +195,7 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
     double best_cut = -1e100;
     int best_feat = 0;
 
-    std::vector<int> x_order(y.size());
+    std::vector<unsigned> x_order(y.size());
     for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
 
     for (size_t feat = 0; feat < x.size(); feat++) {
@@ -203,14 +203,14 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
 
       // remove previous cut
       for (size_t i = 0; i < y.size(); i++) {
-        if (L[i] & (1 << k)) {
+        if (L[i] & (1u << k)) {
           current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]--;
           assert(counter[L[i]] >= 0);
           sum[L[i]] -= y[i];
           if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
 
-          L[i] -= 1 << k;
+          L[i] -= 1u << k;
 
           if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]++;
@@ -226,7 +226,7 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
         sum[L[x_order[i]]] -= y[x_order[i]];
         if (counter[L[x_order[i]]]) current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
 
-        L[x_order[i]] |= (1 << k);
+        L[x_order[i]] |= (1u << k);
 
         if (counter[L[x_order[i]]]) current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
         counter[L[x_order[i]]]++;
@@ -247,14 +247,14 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
 
     for (size_t i = 0; i < y.size(); i++) {
       if (x[best_feat][i] < best_cut) {
-        if (L[i] & (1 << k)) {
+        if (L[i] & (1u << k)) {
           current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]--;
           assert(counter[L[i]] >= 0);
           sum[L[i]] -= y[i];
           if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
 
-          L[i] -= 1 << k;
+          L[i] -= 1u << k;
 
           if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]++;
@@ -262,14 +262,14 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
           current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
         }
       } else {
-        if (!(L[i] & (1 << k))) {
+        if (!(L[i] & (1u << k))) {
           current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]--;
           assert(counter[L[i]] >= 0);
           sum[L[i]] -= y[i];
           if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
 
-          L[i] |= 1 << k;
+          L[i] |= 1u << k;
 
           if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]++;
