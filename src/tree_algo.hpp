@@ -100,10 +100,11 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
   auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   for (size_t feat = 0; feat < x.size(); feat++) {
+    const auto &x_feat = x[feat];
     std::vector<unsigned> x_order(y.size());
     for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
 
-    std::sort(x_order.begin(), x_order.end(), [&x, &feat](int l, int r) { return x[feat][l] < x[feat][r]; });
+    std::sort(x_order.begin(), x_order.end(), [&x_feat](int l, int r) { return x_feat[l] < x_feat[r]; });
 
     double l_sum = 0;
     double r_sum = 0;
@@ -136,9 +137,9 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
       if (score < best_score) {
         best_score = score;
         if (i + 1 < x_order.size()) {
-          best_value = x[feat][x_order[i]] + 0.5 * (x[feat][x_order[i + 1]] - x[feat][x_order[i]]);
+          best_value = x_feat[x_order[i]] + 0.5 * (x_feat[x_order[i + 1]] - x_feat[x_order[i]]);
         } else {
-          best_value = x[feat][x_order[i]] + 1e-5;
+          best_value = x_feat[x_order[i]] + 1e-5;
         }
       }
     }
@@ -174,7 +175,7 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
   unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y_full.size() * subsample_a)), y_full.size());
   unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y_full.size() * subsample_b));
 
-  auto [x, y] = make_pair(x_full, y_full); // get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
+  auto [x, y] = make_pair(x_full, y_full);// get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   std::vector<unsigned> L(y.size());
   std::vector<unsigned> features(tree_depth);
@@ -199,7 +200,8 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
     for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
 
     for (size_t feat = 0; feat < x.size(); feat++) {
-      std::sort(x_order.begin(), x_order.end(), [&x, &feat](int l, int r) { return x[feat][l] < x[feat][r]; });
+      const auto &x_feat = x[feat];
+      std::sort(x_order.begin(), x_order.end(), [&x_feat](int l, int r) { return x_feat[l] < x_feat[r]; });
 
       // remove previous cut
       for (size_t i = 0; i < y.size(); i++) {
@@ -237,9 +239,9 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
           best_score = current_score;
           best_feat = feat;
           if (i + 1 < x_order.size()) {
-            best_cut = x[feat][x_order[i]] + 0.5 * (x[feat][x_order[i + 1]] - x[feat][x_order[i]]);
+            best_cut = x_feat[x_order[i]] + 0.5 * (x_feat[x_order[i + 1]] - x_feat[x_order[i]]);
           } else {
-            best_cut = x[feat][x_order[i]] + 1e-5;
+            best_cut = x_feat[x_order[i]] + 1e-5;
           }
         }
       }

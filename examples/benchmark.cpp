@@ -46,7 +46,7 @@ int main() {
 
 
   evaluate_algo("mse_splitting_bdt",
-    50,
+    300,
     dataset,
     dataset_validation,
     [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
@@ -59,7 +59,7 @@ int main() {
 
   std::mt19937 rng_random_tree{ 42 };
   evaluate_algo("random_tree",
-    50,
+    300,
     dataset,
     dataset_validation,
     [&rng_random_tree](const ogbt::DatasetTest &x, const std::vector<double> &y) {
@@ -67,7 +67,7 @@ int main() {
     });
 
   evaluate_algo(
-    "genetic_algo", 50, dataset, dataset_validation, [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    "genetic_algo", 300, dataset, dataset_validation, [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
       const unsigned iterations = 6;
       const unsigned tree_depth = 6;
       const unsigned population = 200;
@@ -81,7 +81,7 @@ int main() {
     });
 
   evaluate_algo("greedy_mse_splitting",
-    50,
+    300,
     dataset,
     dataset_validation,
     [](const ogbt::DatasetTest &x, const std::vector<double> &y) {

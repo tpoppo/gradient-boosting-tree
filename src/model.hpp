@@ -41,7 +41,7 @@ public:
       ensemble_trees.back().scale(learning_rate);
 
       const auto &y_pred_tree = ensemble_trees.back().predict(x);
-      for (size_t j = 0; j < y_pred.size(); j++) y_pred[j] += y_pred_tree[j];
+      for (size_t j = 0; j < y_pred.size(); j++) { y_pred[j] += y_pred_tree[j]; }
     }
   }
 
