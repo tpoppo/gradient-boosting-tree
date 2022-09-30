@@ -1,7 +1,44 @@
 #pragma once
 #include "dataset.hpp"
+#include <cassert>
 
 namespace ogbt {
+
+constexpr uint64_t rol64(uint64_t x, uint8_t k) { return (x << k) | (x >> (64 - k)); }
+
+class Xoshiro256p {
+  uint64_t s[4];
+
+public:
+  Xoshiro256p() : Xoshiro256p{ 0 } {}
+  Xoshiro256p(uint64_t seed) {
+    s[0] = seed;
+    s[1] = seed ^ 0xabcedfaaull;
+    s[2] = seed ^ 0x342abbbbull;
+    s[3] = seed ^ 0xaa1dddddull;
+  }
+
+  uint32_t operator()() {
+    uint64_t const result = s[0] + s[3];
+    uint64_t const t = s[1] << 17;
+
+    s[2] ^= s[0];
+    s[3] ^= s[1];
+    s[1] ^= s[2];
+    s[0] ^= s[3];
+
+    s[2] ^= t;
+    s[3] = rol64(s[3], 45);
+
+    return result >> 32;
+  }
+
+  static constexpr uint64_t min() {return 0;}
+  static constexpr uint64_t max() {return 1ull<<32;}
+
+};
+
+
 Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) noexcept {
 
   std::vector<std::vector<double>> data_dense;

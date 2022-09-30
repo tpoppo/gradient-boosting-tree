@@ -58,7 +58,7 @@ TEST(Model, GeneticAlgo) {
 
   ogbt::Dataset dataset(data_dense, target);
   unsigned iterations = 2;
-  unsigned tree_depth = 6;
+  unsigned tree_depth = 5;
   unsigned population = 5;
   unsigned selected = 1;
   unsigned new_mutations = 2;
@@ -85,7 +85,7 @@ TEST(Model, AlgoGenGaussianTest) {
 
   constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
     const unsigned iterations = 3;
-    const unsigned tree_depth = 6;
+    const unsigned tree_depth = 5;
     const unsigned population = 100;
     const unsigned selected = 10;
     const unsigned new_mutations = 50;
@@ -119,7 +119,7 @@ TEST(Model, MSEGreedyGaussianTest) {
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
 
   constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
-    const unsigned tree_depth = 6;
+    const unsigned tree_depth = 5;
     return ogbt::greedy_mse_splitting(x, y, tree_depth);
   };
 
@@ -148,7 +148,7 @@ TEST(Model, MSEBDTGaussianTest) {
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
 
   constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
-    const unsigned tree_depth = 6;
+    const unsigned tree_depth = 5;
     return ogbt::mse_splitting_bdt(x, y, tree_depth);
   };
 

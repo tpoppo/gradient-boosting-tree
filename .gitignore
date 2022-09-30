@@ -60,3 +60,4 @@ build
 # Lcov
 out
 code_coverage.info
+main

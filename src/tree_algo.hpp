@@ -174,7 +174,7 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
   unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y_full.size() * subsample_a)), y_full.size());
   unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y_full.size() * subsample_b));
 
-  auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
+  auto [x, y] = make_pair(x_full, y_full); // get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   std::vector<int> L(y.size());
   std::vector<int> features(tree_depth);

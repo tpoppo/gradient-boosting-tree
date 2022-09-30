@@ -1,5 +1,6 @@
 #pragma once
 #include "dataset.hpp"
+#include "utils.hpp"
 #include <cassert>
 #include <random>
 #include <type_traits>
