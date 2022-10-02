@@ -28,7 +28,9 @@ public:
     build_decision_table(x, y);
   }
 
-  Tree(const Dataset &data, const std::vector<unsigned> &t_features, const std::vector<double> &t_splitting_value) noexcept
+  Tree(const Dataset &data,
+    const std::vector<unsigned> &t_features,
+    const std::vector<double> &t_splitting_value) noexcept
     : Tree(data.get_x(), data.get_y(), t_features, t_splitting_value) {
     assert(t_features.size() == t_splitting_value.size());
   }
@@ -47,9 +49,11 @@ public:
     std::vector<double> ans(data[0].size());
     for (size_t i = 0; i < ans.size(); i++) {
 
-      unsigned index = 0;
+      size_t index = 0;
 
-      for (size_t d = 0; d < features.size(); d++) { index |= (static_cast<uint32_t>(data[features[d]][i] > splitting_value[d]) << d); }
+      for (size_t d = 0; d < features.size(); d++) {
+        index |= (static_cast<size_t>(data[features[d]][i] > splitting_value[d]) << d);
+      }
 
       ans[i] = decision_table[index];
     }
@@ -69,8 +73,10 @@ public:
     decision_table_cnt.resize(1u << features.size());
 
     for (size_t i = 0; i < y.size(); i++) {
-      unsigned index = 0;
-      for (size_t d = 0; d < features.size(); d++) { index |= ((x[features[d]][i] > splitting_value[d]) << d); }
+      size_t index = 0;
+      for (size_t d = 0; d < features.size(); d++) {
+        index |= static_cast<size_t>((x[features[d]][i] > splitting_value[d]) << d);
+      }
       decision_table[index] += y[i];
       ++decision_table_cnt[index];
     }

@@ -9,6 +9,9 @@
 
 namespace ogbt {
 
+
+const size_t MIN_SAMPLE = 100;
+
 struct ScoreTree {
   double score;
   Tree tree;
@@ -45,8 +48,8 @@ Tree genetic_algo(const DatasetTest &x,
 
   std::vector<ScoreTree> pop_trees;
 
-  unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y.size() * subsample_a)), y.size());
-  unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y.size() * subsample_b));
+  unsigned sample_size_a = std::min(std::max(MIN_SAMPLE, static_cast<size_t>(y.size() * subsample_a)), y.size());
+  unsigned sample_size_b = std::max(MIN_SAMPLE, static_cast<size_t>(y.size() * subsample_b));
 
   for (size_t t = 0; t < iterations; t++) {
     pop_trees.reserve(population);
@@ -94,33 +97,48 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
   std::vector<ScoreFeature> feature_score;
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
-  unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y_full.size() * subsample_a)), y_full.size());
-  unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y_full.size() * subsample_b));
+  unsigned sample_size_a = std::min(
+    std::max(MIN_SAMPLE, static_cast<size_t>(static_cast<double>(y_full.size()) * subsample_a)), y_full.size());
+  unsigned sample_size_b = std::max(MIN_SAMPLE, static_cast<size_t>(static_cast<double>(y_full.size()) * subsample_b));
 
   auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
+  auto y_size_double = static_cast<double>(y.size());
+
+  std::vector<std::vector<size_t>> sorted_x_order(x.size(), std::vector<size_t>(y.size()));
   for (size_t feat = 0; feat < x.size(); feat++) {
     const auto &x_feat = x[feat];
-    std::vector<unsigned> x_order(y.size());
-    for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
 
-    std::sort(x_order.begin(), x_order.end(), [&x_feat](int l, int r) { return x_feat[l] < x_feat[r]; });
+    for (size_t i = 0; i < sorted_x_order[feat].size(); i++) sorted_x_order[feat][i] = i;
+    std::sort(sorted_x_order[feat].begin(), sorted_x_order[feat].end(), [&x_feat](int l, int r) {
+      return x_feat[l] < x_feat[r];
+    });
+  }
+
+  for (size_t feat = 0; feat < x.size(); feat++) {
+    const auto &x_feat = x[feat];
+    const auto &x_order = sorted_x_order[feat];
 
     double l_sum = 0;
     double r_sum = 0;
     double l_squared_sum = 0;
     double r_squared_sum = 0;
     double best_score;
-    double best_value = x_order[0] - 1e-5;
+    double best_value = y[x_order[0]] - 1e-5;
 
     for (size_t i = 0; i < x_order.size(); i++) {
       r_sum += y[x_order[i]];
       r_squared_sum += y[x_order[i]] * y[x_order[i]];
     }
 
-    best_score = r_squared_sum / x_order.size() - r_sum * r_sum / x_order.size() / x_order.size();
+    best_score = r_squared_sum / y_size_double - r_sum * r_sum / y_size_double / y_size_double;
+
+    double l_size = 0.0;
+    double r_size = y_size_double - 1;
 
     for (size_t i = 0; i < x_order.size(); i++) {
+      l_size++;
+      r_size--;
       l_sum += y[x_order[i]];
       r_sum -= y[x_order[i]];
 
@@ -128,10 +146,10 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
       r_squared_sum -= y[x_order[i]] * y[x_order[i]];
 
 
-      auto score = l_squared_sum / (1 + i) - l_sum * l_sum / (1 + i) / (1 + i);
+      auto score = l_squared_sum / l_size - l_sum * l_sum / l_size / l_size;
 
       if (y.size() - i - 1 > 0) {
-        score += r_squared_sum / (y.size() - i - 1) - r_sum * r_sum / (y.size() - i - 1) / (y.size() - i - 1);
+        score += r_squared_sum / r_size - r_sum * r_sum / r_size / r_size;
       }
 
       if (score < best_score) {
@@ -143,7 +161,7 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
         }
       }
     }
-    assert(best_score >= 0);
+    
     feature_score.emplace_back(best_score, best_value, feat);
   }
 
@@ -172,16 +190,17 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
 
   std::random_device random_dev;
   std::mt19937 generator(random_dev());
-  unsigned sample_size_a = std::min(std::max(100ul, static_cast<size_t>(y_full.size() * subsample_a)), y_full.size());
-  unsigned sample_size_b = std::max(100ul, static_cast<size_t>(y_full.size() * subsample_b));
+  unsigned sample_size_a = std::min(
+    std::max(MIN_SAMPLE, static_cast<size_t>(static_cast<double>(y_full.size()) * subsample_a)), y_full.size());
+  unsigned sample_size_b = std::max(MIN_SAMPLE, static_cast<size_t>(static_cast<double>(y_full.size()) * subsample_b));
 
-  auto [x, y] = make_pair(x_full, y_full);// get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
+  auto [x, y] = get_goss(x_full, y_full, generator, sample_size_a, sample_size_b);
 
   std::vector<unsigned> L(y.size());
   std::vector<unsigned> features(tree_depth);
   std::vector<double> splitting_value(tree_depth, -1e100);
 
-  std::vector<unsigned> counter(1u << tree_depth);
+  std::vector<double> counter(1u << tree_depth);
   std::vector<double> sum(1u << tree_depth);
   double current_score;
 
@@ -194,9 +213,9 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
 
     double best_score = -1e100;
     double best_cut = -1e100;
-    int best_feat = 0;
+    size_t best_feat = 0;
 
-    std::vector<unsigned> x_order(y.size());
+    std::vector<size_t> x_order(y.size());
     for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
 
     for (size_t feat = 0; feat < x.size(); feat++) {
@@ -208,13 +227,13 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
         if (L[i] & (1u << k)) {
           current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]--;
-          assert(counter[L[i]] >= 0);
+          assert(counter[L[i]] >= -1e-5);
           sum[L[i]] -= y[i];
-          if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+          if (counter[L[i]] >= 1e-5) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
 
           L[i] -= 1u << k;
 
-          if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          if (counter[L[i]] >= 1e-5) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]++;
           sum[L[i]] += y[i];
           current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
@@ -226,11 +245,13 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
         current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
         counter[L[x_order[i]]]--;
         sum[L[x_order[i]]] -= y[x_order[i]];
-        if (counter[L[x_order[i]]]) current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+        if (counter[L[x_order[i]]] >= 1e-5)
+          current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
 
         L[x_order[i]] |= (1u << k);
 
-        if (counter[L[x_order[i]]]) current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+        if (counter[L[x_order[i]]] >= 1e-5)
+          current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
         counter[L[x_order[i]]]++;
         sum[L[x_order[i]]] += y[x_order[i]];
         current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
@@ -254,11 +275,11 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
           counter[L[i]]--;
           assert(counter[L[i]] >= 0);
           sum[L[i]] -= y[i];
-          if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+          if (counter[L[i]] >= 1e-5) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
 
           L[i] -= 1u << k;
 
-          if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          if (counter[L[i]] >= 1e-5) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]++;
           sum[L[i]] += y[i];
           current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
@@ -269,11 +290,11 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
           counter[L[i]]--;
           assert(counter[L[i]] >= 0);
           sum[L[i]] -= y[i];
-          if (counter[L[i]]) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
+          if (counter[L[i]] >= 1e-5) current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];
 
           L[i] |= 1u << k;
 
-          if (counter[L[i]]) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
+          if (counter[L[i]] >= 1e-5) current_score -= sum[L[i]] * sum[L[i]] / counter[L[i]];
           counter[L[i]]++;
           sum[L[i]] += y[i];
           current_score += sum[L[i]] * sum[L[i]] / counter[L[i]];

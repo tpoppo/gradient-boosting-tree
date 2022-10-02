@@ -34,7 +34,8 @@ public:
     data.reserve(t_dense.size() + t_categorical.size());
 
     // target encoding
-    mean_target = std::accumulate(target.begin(), target.end(), 0.0) / target.size() * smooth_target_encoding;
+    mean_target =
+      std::accumulate(target.begin(), target.end(), 0.0) / static_cast<double>(target.size() * smooth_target_encoding);
     target_encoding_counter.reserve(t_categorical.size());
     for (const auto &column : t_categorical) {
       this->data.emplace_back();

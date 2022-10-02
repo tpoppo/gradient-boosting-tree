@@ -18,7 +18,7 @@ public:
     s[3] = seed ^ 0xaa1dddddull;
   }
 
-  uint32_t operator()() {
+  uint64_t operator()() {
     uint64_t const result = s[0] + s[3];
     uint64_t const t = s[1] << 17;
 
@@ -30,12 +30,11 @@ public:
     s[2] ^= t;
     s[3] = rol64(s[3], 45);
 
-    return result >> 32;
+    return result >> 8;
   }
 
-  static constexpr uint64_t min() {return 0;}
-  static constexpr uint64_t max() {return 1ull<<32;}
-
+  static constexpr uint64_t min() { return 0; }
+  static constexpr uint64_t max() { return 1ull << 32; }
 };
 
 
@@ -45,7 +44,7 @@ Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) noexcept {
   std::vector<double> target(n);
   std::normal_distribution<> d0{ 4, 2 };
   std::normal_distribution<> d1{ 1, 2 };
-  for (int i = 0; i < n; i++) { target[i] = gen() % 2; }
+  for (int i = 0; i < n; i++) { target[i] = static_cast<double>(gen() % 2); }
 
   for (int i = 0; i < m; i++) {
     data_dense.emplace_back(n);
@@ -66,8 +65,8 @@ std::pair<DatasetTest, std::vector<double>>
   DatasetTest x_ans(x.size(), std::vector<double>(n));
   std::vector<double> y_ans(n);
 
-  for (unsigned i = 0; i < n; i++) {
-    unsigned index = gen() % y.size();
+  for (size_t i = 0; i < n; i++) {
+    size_t index = gen() % y.size();
     y_ans[i] = y[index];
     for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][index];
   }
@@ -89,7 +88,7 @@ std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
   DatasetTest x_ans(x.size(), std::vector<double>(a_n + b_n));
   std::vector<double> y_ans(a_n + b_n);
 
-  std::vector<unsigned> y_order(y.size());
+  std::vector<size_t> y_order(y.size());
   for (size_t i = 0; i < y.size(); i++) y_order[i] = i;
   sort(y_order.begin(), y_order.end(), [&](const int a, const int b) { return abs(y[a]) > abs(y[b]); });
 
@@ -99,7 +98,7 @@ std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
   }
 
   for (unsigned i = a_n; i < a_n + b_n; i++) {
-    unsigned index = gen() % y.size();
+    size_t index = gen() % y.size();
     y_ans[i] = y[index];
     for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][index];
   }

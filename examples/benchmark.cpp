@@ -17,8 +17,8 @@ auto since(std::chrono::time_point<clock_t, duration_t> const &start) {
 
 
 std::pair<ogbt::Dataset, ogbt::Dataset> get_dataset() {
-  std::mt19937 rng{ 1234 };
-  return std::make_pair(ogbt::get_dummy_data(10000, 5, rng), ogbt::get_dummy_data(5000, 5, rng));
+  std::mt19937 rng{ 42 };
+  return std::make_pair(ogbt::get_dummy_data(20000, 5, rng), ogbt::get_dummy_data(100000, 5, rng));
 }
 
 template<typename F>
@@ -46,20 +46,20 @@ int main() {
 
 
   evaluate_algo("mse_splitting_bdt",
-    300,
+    100,
     dataset,
     dataset_validation,
     [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
       const unsigned tree_depth = 6;
-      const int steps = 10;
-      const double subsample_a = 0.1;
-      const double subsample_b = 0.1;
+      const int steps = 20;
+      const double subsample_a = 0.5;
+      const double subsample_b = 0.5;
       return ogbt::mse_splitting_bdt(x, y, tree_depth, steps, subsample_a, subsample_b);
     });
 
   std::mt19937 rng_random_tree{ 42 };
   evaluate_algo("random_tree",
-    300,
+    100,
     dataset,
     dataset_validation,
     [&rng_random_tree](const ogbt::DatasetTest &x, const std::vector<double> &y) {
@@ -67,27 +67,27 @@ int main() {
     });
 
   evaluate_algo(
-    "genetic_algo", 300, dataset, dataset_validation, [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    "genetic_algo", 100, dataset, dataset_validation, [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
       const unsigned iterations = 6;
       const unsigned tree_depth = 6;
       const unsigned population = 200;
       const unsigned selected = 2;
       const unsigned new_mutations = 80;
       const unsigned num_mutations = 2;
-      const double subsample_a = 0.1;
-      const double subsample_b = 0.1;
+      const double subsample_a = 0.5;
+      const double subsample_b = 0.5;
       return ogbt::genetic_algo<ogbt::MSE>(
         x, y, tree_depth, iterations, population, selected, new_mutations, num_mutations, subsample_a, subsample_b);
     });
 
   evaluate_algo("greedy_mse_splitting",
-    300,
+    100,
     dataset,
     dataset_validation,
     [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
       const unsigned tree_depth = 6;
-      const double subsample_a = 0.1;
-      const double subsample_b = 0.1;
+      const double subsample_a = 0.5;
+      const double subsample_b = 0.5;
       return ogbt::greedy_mse_splitting(x, y, tree_depth, subsample_a, subsample_b);
     });
 }

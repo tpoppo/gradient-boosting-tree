@@ -6,11 +6,16 @@
 Required tools: cmake, cppcheck
 Optional tools: lcov (for coverage)
 
-In order to run the tests
+To run the tests
 ```bash
 sh test.sh
 ```
-In order to get the code coverage
+To get the code coverage
 ```bash
 sh coverage.sh
 ```
+To get perf evaluation
+```bash
+sh perf.sh
+```
+  

@@ -18,7 +18,7 @@ private:
 
 public:
   Model(TreeGenerator t_tree_generator,
-    const uint16_t t_num_trees = 300,
+    const uint16_t t_num_trees = 50,
     const uint8_t t_depth = 5,
     const double t_learning_rate = 0.1) noexcept
     : tree_generator{ t_tree_generator }, num_trees{ t_num_trees }, depth{ t_depth }, learning_rate{ t_learning_rate } {
