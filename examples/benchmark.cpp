@@ -1,3 +1,4 @@
+// g++ -std=c++17 -DNDEBUG -Ofast -Wall -Wextra -Werror -Wshadow -Wfloat-equal -Wpedantic -Wformat=2 -march=native -g examples/benchmark.cpp -o main && ./main
 #include "../src/dataset.hpp"
 #include "../src/loss.hpp"
 #include "../src/model.hpp"
@@ -18,7 +19,7 @@ auto since(std::chrono::time_point<clock_t, duration_t> const &start) {
 
 std::pair<ogbt::Dataset, ogbt::Dataset> get_dataset() {
   std::mt19937 rng{ 42 };
-  return std::make_pair(ogbt::get_dummy_data(20000, 5, rng), ogbt::get_dummy_data(100000, 5, rng));
+  return std::make_pair(ogbt::get_dummy_data(15000, 5, rng), ogbt::get_dummy_data(50000, 5, rng));
 }
 
 template<typename F>

@@ -148,9 +148,7 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
 
       auto score = l_squared_sum / l_size - l_sum * l_sum / l_size / l_size;
 
-      if (y.size() - i - 1 > 0) {
-        score += r_squared_sum / r_size - r_sum * r_sum / r_size / r_size;
-      }
+      if (y.size() - i - 1 > 0) { score += r_squared_sum / r_size - r_sum * r_sum / r_size / r_size; }
 
       if (score < best_score) {
         best_score = score;
@@ -161,7 +159,7 @@ Tree greedy_mse_splitting(const DatasetTest &x_full,
         }
       }
     }
-    
+
     feature_score.emplace_back(best_score, best_value, feat);
   }
 
@@ -208,6 +206,27 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
   counter[0] = y.size();
   current_score = sum[0] * sum[0] / counter[0];
 
+
+  // precompute sorting methods
+  size_t n_buckets = y.size() / 4;
+
+  std::vector<std::vector<size_t>> buckets(x.size() * n_buckets); // feature * n_buckets + id_bucket
+  std::vector<float> min_feat(x.size());
+  std::vector<float> max_feat(x.size());
+
+  for (size_t feat = 0; feat < x.size(); feat++) {
+    min_feat[feat] = *std::min_element(x[feat].begin(), x[feat].end());
+    max_feat[feat] = *std::max_element(x[feat].begin(), x[feat].end());
+
+    for (size_t i = 0; i < y.size(); i++) {
+      auto index_bucket =
+        static_cast<size_t>((x[feat][i] - min_feat[feat]) / (max_feat[feat] - min_feat[feat]) * n_buckets);
+      index_bucket = std::min(index_bucket, n_buckets-1);
+      assert(index_bucket < n_buckets);
+      buckets[feat * n_buckets + index_bucket].push_back(i);
+    }
+  }
+
   for (unsigned t = 0; t < steps; t++) {
     const int k = t % tree_depth;
 
@@ -215,12 +234,7 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
     double best_cut = -1e100;
     size_t best_feat = 0;
 
-    std::vector<size_t> x_order(y.size());
-    for (size_t i = 0; i < x_order.size(); i++) x_order[i] = i;
-
     for (size_t feat = 0; feat < x.size(); feat++) {
-      const auto &x_feat = x[feat];
-      std::sort(x_order.begin(), x_order.end(), [&x_feat](int l, int r) { return x_feat[l] < x_feat[r]; });
 
       // remove previous cut
       for (size_t i = 0; i < y.size(); i++) {
@@ -241,29 +255,25 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
       }
 
       // iterate and update
-      for (size_t i = 0; i < x_order.size(); i++) {
-        current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
-        counter[L[x_order[i]]]--;
-        sum[L[x_order[i]]] -= y[x_order[i]];
-        if (counter[L[x_order[i]]] >= 1e-5)
-          current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+      for (size_t id_bucket = 0; id_bucket < n_buckets; id_bucket++) {
+        for (auto index : buckets[feat * n_buckets + id_bucket]) {
+          current_score -= sum[L[index]] * sum[L[index]] / counter[L[index]];
+          counter[L[index]]--;
+          sum[L[index]] -= y[index];
+          if (counter[L[index]] >= 1e-5) current_score += sum[L[index]] * sum[L[index]] / counter[L[index]];
 
-        L[x_order[i]] |= (1u << k);
+          L[index] |= (1u << k);
 
-        if (counter[L[x_order[i]]] >= 1e-5)
-          current_score -= sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
-        counter[L[x_order[i]]]++;
-        sum[L[x_order[i]]] += y[x_order[i]];
-        current_score += sum[L[x_order[i]]] * sum[L[x_order[i]]] / counter[L[x_order[i]]];
+          if (counter[L[index]] >= 1e-5) current_score -= sum[L[index]] * sum[L[index]] / counter[L[index]];
+          counter[L[index]]++;
+          sum[L[index]] += y[index];
+          current_score += sum[L[index]] * sum[L[index]] / counter[L[index]];
+        }
 
         if (current_score > best_score) {
           best_score = current_score;
           best_feat = feat;
-          if (i + 1 < x_order.size()) {
-            best_cut = x_feat[x_order[i]] + 0.5 * (x_feat[x_order[i + 1]] - x_feat[x_order[i]]);
-          } else {
-            best_cut = x_feat[x_order[i]] + 1e-5;
-          }
+          best_cut = min_feat[feat] + (max_feat[feat] - min_feat[feat]) * (1 + id_bucket) / n_buckets;
         }
       }
     }

@@ -128,7 +128,7 @@ TEST(Model, MSEGreedyGaussianTest) {
   auto y_pred = model.predict(dataset_validation.get_x());
 
   auto score = ogbt::MSE::score(y_pred, dataset_validation.get_y());
-  EXPECT_LE(score, 0.15);
+  EXPECT_LE(score, 0.2);
 }
 
 
