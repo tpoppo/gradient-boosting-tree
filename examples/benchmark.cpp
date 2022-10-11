@@ -1,4 +1,5 @@
-// g++ -std=c++17 -DNDEBUG -Ofast -Wall -Wextra -Werror -Wshadow -Wfloat-equal -Wpedantic -Wformat=2 -march=native -g examples/benchmark.cpp -o main && ./main
+// g++ -std=c++17 -DNDEBUG -Ofast -Wall -Wextra -Werror -Wshadow -Wfloat-equal -Wpedantic -Wformat=2 -march=native -g
+// examples/benchmark.cpp -o main && ./main
 #include "../src/dataset.hpp"
 #include "../src/loss.hpp"
 #include "../src/model.hpp"
@@ -6,6 +7,9 @@
 #include "../src/utils.hpp"
 #include <chrono>
 #include <random>
+
+const uint16_t MAX_TREE = 300;
+const double LEARNING_RATE = 0.05;
 
 
 // from https://stackoverflow.com/questions/2808398/easily-measure-elapsed-time
@@ -24,11 +28,12 @@ std::pair<ogbt::Dataset, ogbt::Dataset> get_dataset() {
 
 template<typename F>
 void evaluate_algo(std::string name,
-  int num_trees,
+  uint16_t num_trees,
+  double learning_rate,
   const ogbt::Dataset &dataset,
   const ogbt::Dataset &dataset_validation,
   F tree_generator) {
-  ogbt::Model<ogbt::MSE> model(tree_generator, num_trees);
+  ogbt::Model<ogbt::MSE> model(tree_generator, num_trees, learning_rate);
   auto start = std::chrono::steady_clock::now();
   model.fit(dataset);
 
@@ -45,9 +50,9 @@ void evaluate_algo(std::string name,
 int main() {
   auto [dataset, dataset_validation] = get_dataset();
 
-
   evaluate_algo("mse_splitting_bdt",
-    100,
+    MAX_TREE,
+    LEARNING_RATE,
     dataset,
     dataset_validation,
     [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
@@ -60,15 +65,20 @@ int main() {
 
   std::mt19937 rng_random_tree{ 42 };
   evaluate_algo("random_tree",
-    100,
+    MAX_TREE,
+    LEARNING_RATE,
     dataset,
     dataset_validation,
     [&rng_random_tree](const ogbt::DatasetTest &x, const std::vector<double> &y) {
       return ogbt::Tree{ x, y, rng_random_tree, 6 };
     });
 
-  evaluate_algo(
-    "genetic_algo", 100, dataset, dataset_validation, [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  evaluate_algo("genetic_algo",
+    MAX_TREE,
+    LEARNING_RATE,
+    dataset,
+    dataset_validation,
+    [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
       const unsigned iterations = 6;
       const unsigned tree_depth = 6;
       const unsigned population = 200;
@@ -82,7 +92,8 @@ int main() {
     });
 
   evaluate_algo("greedy_mse_splitting",
-    100,
+    MAX_TREE,
+    LEARNING_RATE,
     dataset,
     dataset_validation,
     [](const ogbt::DatasetTest &x, const std::vector<double> &y) {

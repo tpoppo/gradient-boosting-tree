@@ -62,7 +62,32 @@ struct ResidualMSE {
   }
 };
 
+struct ScoreLogLoss {
+  static double evaluate(const std::vector<double> &y_pred, const std::vector<double> &y_true) noexcept {
+    assert(y_pred.size() == y_true.size());
+    double result = 0;
+    for (size_t i = 0; i < y_pred.size(); i++) {
+      auto sigmoid_val = 1.0 / (1.0 + exp(-y_pred[i]));
+      result += y_true[i] * log(sigmoid_val) + (1 - y_true[i]) * log(1 - sigmoid_val);
+    }
+    return result / y_true.size();
+  }
+};
+
+struct ResidualLogLoss {
+  static std::vector<double> evaluate(const std::vector<double> &y_pred, const std::vector<double> &y_true) noexcept {
+    std::vector<double> ans;
+    ans.resize(y_true.size());
+    for (size_t i = 0; i < y_true.size(); i++) {
+      auto sigmoid_val = 1.0 / (1.0 + exp(-y_pred[i]));
+      ans[i] = sigmoid_val;
+
+      if (y_true[i] < 0.5) { ans[i] = -ans[i]; }
+    }
+    return ans;
+  }
+};
 
 using MSE = Loss<ScoreMSE, ResidualMSE>;
-
+using LogLoss = Loss<ScoreLogLoss, ResidualLogLoss>;
 }// namespace ogbt

@@ -208,9 +208,9 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
 
 
   // precompute sorting methods
-  size_t n_buckets = y.size() / 4;
+  const size_t n_buckets = std::max(y.size() / 32ul, 1ul);
 
-  std::vector<std::vector<size_t>> buckets(x.size() * n_buckets); // feature * n_buckets + id_bucket
+  std::vector<std::vector<size_t>> buckets(x.size() * n_buckets);// feature * n_buckets + id_bucket
   std::vector<float> min_feat(x.size());
   std::vector<float> max_feat(x.size());
 
@@ -221,7 +221,7 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
     for (size_t i = 0; i < y.size(); i++) {
       auto index_bucket =
         static_cast<size_t>((x[feat][i] - min_feat[feat]) / (max_feat[feat] - min_feat[feat]) * n_buckets);
-      index_bucket = std::min(index_bucket, n_buckets-1);
+      index_bucket = std::min(index_bucket, n_buckets - 1);
       assert(index_bucket < n_buckets);
       buckets[feat * n_buckets + index_bucket].push_back(i);
     }
@@ -311,13 +311,9 @@ Tree mse_splitting_bdt(const DatasetTest &x_full,
         }
       }
     }
-
     features[k] = best_feat;
     splitting_value[k] = best_cut;
   }
-
   return Tree{ x, y, features, splitting_value };
 }
-
-
 }// namespace ogbt
