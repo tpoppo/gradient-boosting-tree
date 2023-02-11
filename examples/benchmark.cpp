@@ -23,7 +23,7 @@ auto since(std::chrono::time_point<clock_t, duration_t> const &start) {
 
 std::pair<ogbt::Dataset, ogbt::Dataset> get_dataset() {
   std::mt19937 rng{ 42 };
-  return std::make_pair(ogbt::get_dummy_data(15000, 5, rng), ogbt::get_dummy_data(50000, 5, rng));
+  return std::make_pair(ogbt::get_dummy_data(1000, 5, rng), ogbt::get_dummy_data(5000, 5, rng));
 }
 
 template<typename F>
@@ -62,6 +62,20 @@ int main() {
       const double subsample_b = 0.5;
       return ogbt::mse_splitting_bdt(x, y, tree_depth, steps, subsample_a, subsample_b);
     });
+
+  evaluate_algo("mse_splitting_bdt2",
+    MAX_TREE,
+    LEARNING_RATE,
+    dataset,
+    dataset_validation,
+    [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+      const unsigned tree_depth = 6;
+      const int steps = 20;
+      const double subsample_a = 0.5;
+      const double subsample_b = 0.5;
+      return ogbt::mse_splitting_bdtv2(x, y, tree_depth, steps, subsample_a, subsample_b);
+    });
+
 
   std::mt19937 rng_random_tree{ 42 };
   evaluate_algo("random_tree",

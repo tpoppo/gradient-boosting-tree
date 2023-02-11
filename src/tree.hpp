@@ -11,7 +11,7 @@ class Tree {
 private:
   std::vector<double> decision_table;
   std::vector<unsigned> features;
-  std::vector<double> splitting_value;
+  std::vector<DataType> splitting_value;
 
 public:
   Tree(const Dataset &data, std::mt19937 &generator, const unsigned depth = 5) noexcept
@@ -30,7 +30,7 @@ public:
 
   Tree(const Dataset &data,
     const std::vector<unsigned> &t_features,
-    const std::vector<double> &t_splitting_value) noexcept
+    const std::vector<DataType> &t_splitting_value) noexcept
     : Tree(data.get_x(), data.get_y(), t_features, t_splitting_value) {
     assert(t_features.size() == t_splitting_value.size());
   }
@@ -38,7 +38,7 @@ public:
   Tree(const DatasetTest &x,
     const std::vector<double> &y,
     const std::vector<unsigned> &t_features,
-    const std::vector<double> &t_splitting_value) noexcept {
+    const std::vector<DataType> &t_splitting_value) noexcept {
     assert(t_features.size() == t_splitting_value.size());
     features = t_features;
     splitting_value = t_splitting_value;
@@ -48,7 +48,6 @@ public:
   std::vector<double> predict(const DatasetTest &data) const noexcept {
     std::vector<double> ans(data[0].size());
     for (size_t i = 0; i < ans.size(); i++) {
-
       size_t index = 0;
 
       for (size_t d = 0; d < features.size(); d++) {

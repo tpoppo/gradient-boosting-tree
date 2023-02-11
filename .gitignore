@@ -61,3 +61,4 @@ build
 out
 code_coverage.info
 main
+*.data

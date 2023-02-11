@@ -48,7 +48,7 @@ TEST(Model, FitPredict) {
 
   model.fit(dataset);
 
-  model.predict(data_dense);
+  model.predict(dataset.get_x());
 }
 
 
@@ -71,8 +71,8 @@ TEST(Model, GeneticAlgo) {
 
 TEST(Model, AlgoGenGaussianTest) {
 #ifdef NDEBUG
-  const int n = 5000;
-  const int m = 10;
+  const int n = 100000;
+  const int m = 50;
 #else
   const int n = 1000;
   const int m = 7;
@@ -105,8 +105,8 @@ TEST(Model, AlgoGenGaussianTest) {
 
 TEST(Model, MSEGreedyGaussianTest) {
 #ifdef NDEBUG
-  const int n = 5000;
-  const int m = 10;
+  const int n = 100000;
+  const int m = 50;
 #else
   const int n = 1000;
   const int m = 7;
@@ -134,8 +134,8 @@ TEST(Model, MSEGreedyGaussianTest) {
 
 TEST(Model, MSEBDTGaussianTest) {
 #ifdef NDEBUG
-  const int n = 5000;
-  const int m = 10;
+  const int n = 100000;
+  const int m = 50;
 #else
   const int n = 1000;
   const int m = 7;

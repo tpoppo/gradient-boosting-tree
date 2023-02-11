@@ -56,13 +56,13 @@ Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) noexcept {
       }
     }
   }
-  return ogbt::Dataset{ data_dense, target };
+  return ogbt::Dataset(data_dense, target);
 }
 
 
 std::pair<DatasetTest, std::vector<double>>
   get_subsample(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &gen, const unsigned n) noexcept {
-  DatasetTest x_ans(x.size(), std::vector<double>(n));
+  DatasetTest x_ans(x.size(), std::vector<DataType>(n));
   std::vector<double> y_ans(n);
 
   for (size_t i = 0; i < n; i++) {
@@ -85,7 +85,7 @@ std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
   Faster implementation
   */
   assert(a_n <= y.size());
-  DatasetTest x_ans(x.size(), std::vector<double>(a_n + b_n));
+  DatasetTest x_ans(x.size(), std::vector<DataType>(a_n + b_n));
   std::vector<double> y_ans(a_n + b_n);
 
   std::vector<size_t> y_order(y.size());
