@@ -8,13 +8,13 @@
 #include <vector>
 
 TEST(Model, Constructor) {
-  constexpr auto gen_random = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto gen_random = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     std::mt19937 rng{ 42 };
     return ogbt::Tree{ x, y, rng };
   };
 
   ogbt::Model<ogbt::MSE> model(gen_random);
-  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     return ogbt::genetic_algo<ogbt::MSE>(x, y);
   };
 
@@ -22,28 +22,28 @@ TEST(Model, Constructor) {
 }
 
 TEST(Model, Fit) {
-  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     return ogbt::genetic_algo<ogbt::MSE>(x, y);
   };
 
   ogbt::Model<ogbt::MSE> model(genetic_algo);
 
-  std::vector<std::vector<double>> data_dense = { { 1.2, -10.0, 0.22 }, { 1.0, 2.0, 3.0 } };
-  std::vector<double> target = { 0.23, 1.0, -1.0 };
+  std::vector<std::vector<float>> data_dense = { { 1.2, -10.0, 0.22 }, { 1.0, 2.0, 3.0 } };
+  std::vector<float> target = { 0.23, 1.0, -1.0 };
   ogbt::Dataset dataset(data_dense, target);
 
   model.fit(dataset);
 }
 
 TEST(Model, FitPredict) {
-  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     return ogbt::genetic_algo<ogbt::MSE>(x, y);
   };
 
   ogbt::Model<ogbt::MSE> model(genetic_algo);
 
-  std::vector<std::vector<double>> data_dense = { { 1.2, -10.0, 0.22 }, { 1.0, 2.0, 3.0 } };
-  std::vector<double> target = { 0.23, 1.0, -1.0 };
+  std::vector<std::vector<float>> data_dense = { { 1.2, -10.0, 0.22 }, { 1.0, 2.0, 3.0 } };
+  std::vector<float> target = { 0.23, 1.0, -1.0 };
   ogbt::Dataset dataset(data_dense, target);
 
   model.fit(dataset);
@@ -53,8 +53,8 @@ TEST(Model, FitPredict) {
 
 
 TEST(Model, GeneticAlgo) {
-  std::vector<std::vector<double>> data_dense = { { 1.2, -10.0, 0.22 }, { 1.0, 2.0, 3.0 } };
-  std::vector<double> target = { 0.23, 1.0, -1.0 };
+  std::vector<std::vector<float>> data_dense = { { 1.2, -10.0, 0.22 }, { 1.0, 2.0, 3.0 } };
+  std::vector<float> target = { 0.23, 1.0, -1.0 };
 
   ogbt::Dataset dataset(data_dense, target);
   unsigned iterations = 2;
@@ -71,8 +71,8 @@ TEST(Model, GeneticAlgo) {
 
 TEST(Model, AlgoGenGaussianTest) {
 #ifdef NDEBUG
-  const int n = 100000;
-  const int m = 50;
+  const int n = 500000;
+  const int m = 80;
 #else
   const int n = 1000;
   const int m = 7;
@@ -83,7 +83,7 @@ TEST(Model, AlgoGenGaussianTest) {
   ogbt::Dataset dataset = ogbt::get_dummy_data(n, m, gen);
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
 
-  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto genetic_algo = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     const unsigned iterations = 3;
     const unsigned tree_depth = 5;
     const unsigned population = 100;
@@ -105,8 +105,8 @@ TEST(Model, AlgoGenGaussianTest) {
 
 TEST(Model, MSEGreedyGaussianTest) {
 #ifdef NDEBUG
-  const int n = 100000;
-  const int m = 50;
+  const int n = 500000;
+  const int m = 80;
 #else
   const int n = 1000;
   const int m = 7;
@@ -118,7 +118,7 @@ TEST(Model, MSEGreedyGaussianTest) {
   ogbt::Dataset dataset = ogbt::get_dummy_data(n, m, gen);
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
 
-  constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     const unsigned tree_depth = 5;
     return ogbt::greedy_mse_splitting(x, y, tree_depth);
   };
@@ -134,8 +134,8 @@ TEST(Model, MSEGreedyGaussianTest) {
 
 TEST(Model, MSEBDTGaussianTest) {
 #ifdef NDEBUG
-  const int n = 100000;
-  const int m = 50;
+  const int n = 500000;
+  const int m = 80;
 #else
   const int n = 1000;
   const int m = 7;
@@ -147,7 +147,7 @@ TEST(Model, MSEBDTGaussianTest) {
   ogbt::Dataset dataset = ogbt::get_dummy_data(n, m, gen);
   ogbt::Dataset dataset_validation = ogbt::get_dummy_data(n, m, gen);
 
-  constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+  constexpr auto tree_generator = [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
     const unsigned tree_depth = 5;
     return ogbt::mse_splitting_bdt(x, y, tree_depth);
   };

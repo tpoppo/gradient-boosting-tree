@@ -9,7 +9,7 @@
 #include <random>
 
 const uint16_t MAX_TREE = 300;
-const double LEARNING_RATE = 0.05;
+const float LEARNING_RATE = 0.05;
 
 
 // from https://stackoverflow.com/questions/2808398/easily-measure-elapsed-time
@@ -29,7 +29,7 @@ std::pair<ogbt::Dataset, ogbt::Dataset> get_dataset() {
 template<typename F>
 void evaluate_algo(std::string name,
   uint16_t num_trees,
-  double learning_rate,
+  float learning_rate,
   const ogbt::Dataset &dataset,
   const ogbt::Dataset &dataset_validation,
   F tree_generator) {
@@ -55,11 +55,11 @@ int main() {
     LEARNING_RATE,
     dataset,
     dataset_validation,
-    [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
       const unsigned tree_depth = 6;
       const int steps = 20;
-      const double subsample_a = 0.5;
-      const double subsample_b = 0.5;
+      const float subsample_a = 0.5;
+      const float subsample_b = 0.5;
       return ogbt::mse_splitting_bdt(x, y, tree_depth, steps, subsample_a, subsample_b);
     });
 
@@ -68,11 +68,11 @@ int main() {
     LEARNING_RATE,
     dataset,
     dataset_validation,
-    [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
       const unsigned tree_depth = 6;
       const int steps = 20;
-      const double subsample_a = 0.5;
-      const double subsample_b = 0.5;
+      const float subsample_a = 0.5;
+      const float subsample_b = 0.5;
       return ogbt::mse_splitting_bdtv2(x, y, tree_depth, steps, subsample_a, subsample_b);
     });
 
@@ -83,7 +83,7 @@ int main() {
     LEARNING_RATE,
     dataset,
     dataset_validation,
-    [&rng_random_tree](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    [&rng_random_tree](const ogbt::DatasetTest &x, const std::vector<float> &y) {
       return ogbt::Tree{ x, y, rng_random_tree, 6 };
     });
 
@@ -92,15 +92,15 @@ int main() {
     LEARNING_RATE,
     dataset,
     dataset_validation,
-    [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
       const unsigned iterations = 6;
       const unsigned tree_depth = 6;
       const unsigned population = 200;
       const unsigned selected = 2;
       const unsigned new_mutations = 80;
       const unsigned num_mutations = 2;
-      const double subsample_a = 0.5;
-      const double subsample_b = 0.5;
+      const float subsample_a = 0.5;
+      const float subsample_b = 0.5;
       return ogbt::genetic_algo<ogbt::MSE>(
         x, y, tree_depth, iterations, population, selected, new_mutations, num_mutations, subsample_a, subsample_b);
     });
@@ -110,10 +110,10 @@ int main() {
     LEARNING_RATE,
     dataset,
     dataset_validation,
-    [](const ogbt::DatasetTest &x, const std::vector<double> &y) {
+    [](const ogbt::DatasetTest &x, const std::vector<float> &y) {
       const unsigned tree_depth = 6;
-      const double subsample_a = 0.5;
-      const double subsample_b = 0.5;
+      const float subsample_a = 0.5;
+      const float subsample_b = 0.5;
       return ogbt::greedy_mse_splitting(x, y, tree_depth, subsample_a, subsample_b);
     });
 }

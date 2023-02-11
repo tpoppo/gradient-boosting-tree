@@ -40,11 +40,11 @@ public:
 
 Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) noexcept {
 
-  std::vector<std::vector<double>> data_dense;
-  std::vector<double> target(n);
+  std::vector<std::vector<float>> data_dense;
+  std::vector<float> target(n);
   std::normal_distribution<> d0{ 4, 2 };
   std::normal_distribution<> d1{ 1, 2 };
-  for (int i = 0; i < n; i++) { target[i] = static_cast<double>(gen() % 2); }
+  for (int i = 0; i < n; i++) { target[i] = static_cast<float>(gen() % 2); }
 
   for (int i = 0; i < m; i++) {
     data_dense.emplace_back(n);
@@ -60,10 +60,10 @@ Dataset get_dummy_data(const int n, const int m, std::mt19937 &gen) noexcept {
 }
 
 
-std::pair<DatasetTest, std::vector<double>>
-  get_subsample(const DatasetTest &x, const std::vector<double> &y, std::mt19937 &gen, const unsigned n) noexcept {
+std::pair<DatasetTest, std::vector<float>>
+  get_subsample(const DatasetTest &x, const std::vector<float> &y, std::mt19937 &gen, const unsigned n) noexcept {
   DatasetTest x_ans(x.size(), std::vector<DataType>(n));
-  std::vector<double> y_ans(n);
+  std::vector<float> y_ans(n);
 
   for (size_t i = 0; i < n; i++) {
     size_t index = gen() % y.size();
@@ -73,11 +73,12 @@ std::pair<DatasetTest, std::vector<double>>
   return { x_ans, y_ans };
 }
 
-std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
-  const std::vector<double> &y,
+std::pair<DatasetTest, std::vector<float>> get_goss(const DatasetTest &x,
+  const std::vector<float> &y,
   std::mt19937 &gen,
   const unsigned a_n,
-  const unsigned b_n) noexcept {
+  const unsigned b_n,
+  const std::vector<bool> selected_features) noexcept {
   /*
   Based on "Gradient-based One-Side Sampling" from "LightGBM: A Highly Efficient Gradient Boosting Decision Tree"
   https://papers.nips.cc/paper/2017/file/6449f44a102fde848669bdd9eb6b76fa-Paper.pdf
@@ -85,8 +86,14 @@ std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
   Faster implementation
   */
   assert(a_n <= y.size());
-  DatasetTest x_ans(x.size(), std::vector<DataType>(a_n + b_n));
-  std::vector<double> y_ans(a_n + b_n);
+  assert(selected_features.size() == x.size());
+
+  uint32_t n_features = 0;
+  for (size_t i = 0; i < selected_features.size(); i++) n_features += selected_features[i];
+  assert(n_features > 0);
+
+  DatasetTest x_ans(n_features, std::vector<DataType>(a_n + b_n));
+  std::vector<float> y_ans(a_n + b_n);
 
   std::vector<size_t> y_order(y.size());
   for (size_t i = 0; i < y.size(); i++) y_order[i] = i;
@@ -94,13 +101,25 @@ std::pair<DatasetTest, std::vector<double>> get_goss(const DatasetTest &x,
 
   for (unsigned i = 0; i < a_n; i++) {
     y_ans[i] = y[y_order[i]];
-    for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][y_order[i]];
+    uint32_t cnt = 0;
+    for (size_t j = 0; j < x.size(); j++) {
+      if (selected_features[j]) {
+        x_ans[cnt][i] = x[j][y_order[i]];
+        ++cnt;
+      }
+    }
   }
 
   for (unsigned i = a_n; i < a_n + b_n; i++) {
     size_t index = gen() % y.size();
     y_ans[i] = y[index];
-    for (size_t j = 0; j < x.size(); j++) x_ans[j][i] = x[j][index];
+    uint32_t cnt = 0;
+    for (size_t j = 0; j < x.size(); j++) {
+      if (selected_features[j]) {
+        x_ans[cnt][i] = x[j][index];
+        ++cnt;
+      }
+    }
   }
 
   return { x_ans, y_ans };

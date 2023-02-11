@@ -26,10 +26,13 @@ TEST(Utils, GOSSSubset) {
   std::mt19937 gen{ 42 };
 
   ogbt::Dataset dataset = ogbt::get_dummy_data(n, m, gen);
+  
+  std::vector<bool> selected_features(m);
+  for (size_t i = 1; i < selected_features.size(); i++) selected_features[i] = true;
 
-  auto [x, y] = ogbt::get_goss(dataset.get_x(), dataset.get_y(), gen, a, b);
+  auto [x, y] = ogbt::get_goss(dataset.get_x(), dataset.get_y(), gen, a, b, selected_features);
 
-  EXPECT_EQ(x.size(), m);
+  EXPECT_EQ(x.size(), m - 1);
   EXPECT_EQ(y.size(), a + b);
   for (size_t i = 0; i < x.size(); i++) EXPECT_EQ(x[i].size(), a + b);
 }
